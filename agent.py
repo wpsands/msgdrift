@@ -3,11 +3,13 @@
 import argparse
 import asyncio
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
 import yaml
+from firecrawl import FirecrawlApp
 
 from claude_agent_sdk import query, ClaudeAgentOptions
 from claude_agent_sdk.types import ResultMessage
@@ -56,37 +58,69 @@ def build_page_urls(brand: dict) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Firecrawl page scraper
+# ---------------------------------------------------------------------------
+
+_firecrawl: FirecrawlApp | None = None
+
+
+def get_firecrawl() -> FirecrawlApp:
+    global _firecrawl
+    if _firecrawl is None:
+        api_key = os.environ.get("FIRECRAWL_API_KEY")
+        if not api_key:
+            print("Fatal: FIRECRAWL_API_KEY environment variable is not set.", file=sys.stderr)
+            sys.exit(1)
+        _firecrawl = FirecrawlApp(api_key=api_key)
+    return _firecrawl
+
+
+def scrape_page(url: str) -> str | None:
+    """Scrape a URL via Firecrawl and return markdown content."""
+    try:
+        result = get_firecrawl().scrape(url, formats=["markdown"])
+        if result and result.markdown:
+            return result.markdown
+        print(f"  [WARN] Firecrawl returned no markdown for {url}", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"  [WARN] Firecrawl error for {url}: {e}", file=sys.stderr)
+        return None
+
+
+# ---------------------------------------------------------------------------
 # Phase 1 — Per-page drift analysis
 # ---------------------------------------------------------------------------
 
 
 async def analyze_page(
-    url: str, page_type: str, positioning_text: str
+    url: str, page_type: str, positioning_text: str, page_content: str
 ) -> PageDriftAnalysis | None:
     """Analyze a single page against the brand positioning."""
 
     prompt = (
-        "You are a brand messaging auditor. Your task is to analyze a single web page "
+        "You are a brand messaging auditor. Your task is to analyze a web page's content "
         "and evaluate how well its messaging aligns with the brand's stated positioning.\n\n"
         "## Brand Positioning (baseline)\n\n"
         f"{positioning_text}\n\n"
+        "## Page Content\n\n"
+        f"**URL:** {url}\n"
+        f"**Page type:** {page_type}\n\n"
+        f"{page_content}\n\n"
         "## Instructions\n\n"
-        f"1. Use the WebFetch tool to retrieve the content of this URL: {url}\n"
-        f"2. This is a **{page_type}** page.\n"
-        "3. Compare every messaging element on the page against the positioning baseline above.\n"
-        "4. Identify:\n"
-        "   - **On-message elements**: messaging that reinforces the stated positioning (with evidence)\n"
-        "   - **Off-message elements**: messaging that contradicts or conflicts with positioning\n"
-        "   - **Missing elements**: key positioning dimensions absent from the page\n"
-        "   - **Tone assessment**: how the page's tone compares to the stated tone & voice\n"
-        "   - **Drift issues**: specific problems where messaging has drifted from positioning\n"
-        "5. Assign an overall alignment score from 0 (completely off-brand) to 100 (perfectly aligned).\n"
-        "6. Write a brief summary of your findings.\n\n"
+        "Compare every messaging element on the page against the positioning baseline above.\n"
+        "Identify:\n"
+        "- **On-message elements**: messaging that reinforces the stated positioning (with evidence)\n"
+        "- **Off-message elements**: messaging that contradicts or conflicts with positioning\n"
+        "- **Missing elements**: key positioning dimensions absent from the page\n"
+        "- **Tone assessment**: how the page's tone compares to the stated tone & voice\n"
+        "- **Drift issues**: specific problems where messaging has drifted from positioning\n\n"
+        "Assign an overall alignment score from 0 (completely off-brand) to 100 (perfectly aligned).\n"
+        "Write a brief summary of your findings.\n\n"
         "Return your analysis as structured JSON matching the requested schema."
     )
 
     options = ClaudeAgentOptions(
-        allowed_tools=["WebFetch"],
         permission_mode="bypassPermissions",
         model="haiku",
         output_format={
@@ -319,7 +353,14 @@ async def main():
 
     page_analyses: list[PageDriftAnalysis] = []
     for page in pages:
-        analysis = await analyze_page(page["url"], page["type"], positioning_text)
+        url, page_type = page["url"], page["type"]
+        print(f"  Scraping {url}...")
+        content = scrape_page(url)
+        if not content:
+            print(f"  [SKIP] Could not scrape {url}", file=sys.stderr)
+            continue
+        print(f"  [OK] Scraped {len(content)} chars — analyzing...")
+        analysis = await analyze_page(url, page_type, positioning_text, content)
         if analysis:
             page_analyses.append(analysis)
 
