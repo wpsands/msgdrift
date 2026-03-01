@@ -1,4 +1,0 @@
-claude-agent-sdk
-firecrawl-py
-pydantic
-pyyaml
