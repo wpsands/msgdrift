@@ -1,0 +1,38 @@
+# msgdrift configuration
+#
+# Copy this file to `msgdrift.toml` in your project root and customize it.
+
+# Model to use for analysis (any Anthropic model ID)
+model = "claude-sonnet-4-20250514"
+
+# Crawling behavior
+max_concurrent_requests = 2
+request_delay_seconds = 1.0
+
+# Source-of-truth documents — your messaging and positioning files.
+# Paths are relative to this config file.
+[[source_documents]]
+path = "positioning.md"
+
+# Pages to analyze — add all key pages from your website.
+# importance: "high" | "medium" | "low" — weights the page in the overall score.
+
+[[pages]]
+url = "https://example.com"
+importance = "high"
+label = "Homepage"
+
+[[pages]]
+url = "https://example.com/pricing"
+importance = "high"
+label = "Pricing"
+
+[[pages]]
+url = "https://example.com/about"
+importance = "medium"
+label = "About"
+
+[[pages]]
+url = "https://example.com/blog/latest-post"
+importance = "low"
+label = "Blog post"
