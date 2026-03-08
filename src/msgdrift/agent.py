@@ -9,6 +9,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+
+from dotenv import load_dotenv
 from typing import TYPE_CHECKING
 
 import anthropic
@@ -171,6 +173,7 @@ async def run_analysis(config: AnalysisConfig) -> DriftReport:
     4. Generate executive summary
     5. Assemble and return the drift report
     """
+    load_dotenv(override=True)
     source_content = _combine_source_content(config)
     logger.info("Loaded %d source document(s)", len(config.source_documents))
 
