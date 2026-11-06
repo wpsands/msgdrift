@@ -43,7 +43,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 720 }}>
                 <div style={{ fontSize: 76, lineHeight: 1, letterSpacing: -2 }}>{report.site}</div>
                 <div style={{ fontSize: 28, color: OG_COLORS.ink2, fontFamily: "IBM Plex Serif" }}>
-                  {report.pages.length} page{report.pages.length === 1 ? "" : "s"}, {total} finding{total === 1 ? "" : "s"}: {report.counts.critical} critical, {report.counts.major} major, {report.counts.minor} minor
+                  {`${report.pages.length} page${report.pages.length === 1 ? "" : "s"}, ${total} finding${total === 1 ? "" : "s"}: ${report.counts.critical} critical, ${report.counts.major} major, ${report.counts.minor} minor`}
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
