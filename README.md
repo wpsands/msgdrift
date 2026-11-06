@@ -73,6 +73,8 @@ pnpm build
 | `BLOB_ACCESS` | `public` (default) or `private`, matching how the store was created. |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Durable rate limits. Optional locally. |
 | `SCAN_LIMIT_IP_HOURLY`, `SCAN_LIMIT_IP_DAILY`, `SCAN_LIMIT_GLOBAL_DAILY` | Defaults 3, 10, 200. |
+| `RATE_LIMIT_SALT` | Secret mixed into the visitor hash used for rate-limit keys. Addresses are never stored. |
+| `SCAN_ZDR` | Zero data retention on the gateway provider path. Default on; `0` disables. |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin for share links and metadata. |
 
 ## The CLI
@@ -91,7 +93,8 @@ uv run msgdrift analyze
 
 - **Semantic, not lexical.** The prompt tells the model what counts as drift and what is normal adaptation. Findings must quote both sides so a reader can disagree with the model.
 - **Structured output as the spine.** Every model response is validated with zod before it touches the report. A malformed response degrades to a scored page with an explanation, never a crash.
-- **Anonymous by default, bounded by design.** No accounts. Scans are limited per IP and globally, page count and text are capped, and only public hosts are fetched.
+- **Anonymous by default, bounded by design.** No accounts. Scans are limited per visitor (a salted hash, never the address) and globally, page count and text are capped, and only public hosts are fetched.
+- **The document is not stored.** It is read once for the scan. The report keeps only the sentences it quotes. The browser that ran the scan gets a delete token; only its hash is stored, and `DELETE /api/reports/:id` with that token removes the report. Model calls request zero data retention on the gateway provider path. Full text at [`/privacy`](https://msgdrift.com/privacy).
 - **One engine, two surfaces.** The TypeScript engine mirrors the Python CLI's prompts and scoring so reports are comparable.
 
 ## Roadmap

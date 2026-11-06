@@ -8,8 +8,9 @@ export function SiteFooter() {
         <div className="col-span-12 md:col-span-5">
           <Wordmark className="text-[19px]" />
           <p className="mt-4 max-w-sm leading-relaxed text-ink-2">
-            A tool for checking a website against the document that was supposed to govern it. Open source, MIT. Reports hold
-            only the pages you scanned and the text you pasted.
+            A tool for checking a website against the document that was supposed to govern it. Open source, MIT. Your document
+            is read once and not saved; reports keep only the sentences they quote.{" "}
+            <Link href="/privacy" className="link">Privacy</Link>.
           </p>
         </div>
         <dl className="col-span-6 md:col-span-3 md:col-start-7">

@@ -113,6 +113,8 @@ export interface DriftReport {
   executiveSummary: string;
   counts: SeverityCounts;
   durationMs: number;
+  /** SHA-256 of the owner's delete token. Never sent to clients; stripped on export. */
+  ownerTokenHash?: string;
 }
 
 /** Events streamed to the browser while a scan runs. */
@@ -123,5 +125,5 @@ export type ScanEvent =
   | { type: "analyze:start"; url: string }
   | { type: "analyze:done"; url: string; score: number; findings: number }
   | { type: "summary:start" }
-  | { type: "done"; reportId: string; overallScore: number }
+  | { type: "done"; reportId: string; overallScore: number; deleteToken: string }
   | { type: "error"; message: string };

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { discoverPages } from "@/lib/engine/discover";
 import { UnsafeUrlError } from "@/lib/engine/url-safety";
-import { clientIp, getLimiter, SCAN_LIMITS } from "@/lib/ratelimit";
+import { getLimiter, SCAN_LIMITS, visitorKey } from "@/lib/ratelimit";
 
 export const maxDuration = 60;
 
@@ -18,8 +18,7 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) return json({ error: "Enter a website URL." }, 400);
 
-  const ip = clientIp(request);
-  const limit = await getLimiter().check(`discover:ip:hour:${ip}`, SCAN_LIMITS.discoverHourly, 3600, "discover");
+  const limit = await getLimiter().check(`discover:v:hour:${visitorKey(request)}`, SCAN_LIMITS.discoverHourly, 3600, "discover");
   if (!limit.ok) return json({ error: "Too many lookups. Try again in a little while." }, 429);
 
   try {

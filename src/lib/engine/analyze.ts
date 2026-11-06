@@ -20,6 +20,20 @@ import { clampScore, computeCounts, computeOverallScore } from "./scoring";
 
 export const DEFAULT_MODEL = "anthropic/claude-sonnet-5.5";
 
+/**
+ * Gateway routing for every model call. Zero data retention asks the gateway to
+ * route only to provider endpoints that do not retain prompts or responses.
+ * Set SCAN_ZDR=0 to disable on a plan where it is unavailable.
+ */
+export function gatewayOptions() {
+  return {
+    gateway: {
+      zeroDataRetention: process.env.SCAN_ZDR !== "0",
+      only: ["anthropic"],
+    },
+  };
+}
+
 export interface RunScanOptions {
   id: string;
   model?: string;
@@ -125,6 +139,7 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
       temperature: 0.2,
       maxOutputTokens: 4096,
       abortSignal: signal,
+      providerOptions: gatewayOptions(),
     });
     const findings = output.findings.slice(0, 12).map((f) => ({
       severity: f.severity,
@@ -164,6 +179,7 @@ export async function generateExecutiveSummary(pages: PageAnalysis[], model: str
       temperature: 0.3,
       maxOutputTokens: 1024,
       abortSignal: signal,
+      providerOptions: gatewayOptions(),
     });
     return text.trim();
   } catch (err) {

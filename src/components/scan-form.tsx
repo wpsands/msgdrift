@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { rememberOwnerToken } from "@/lib/owner";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SAMPLE_POSITIONING, SAMPLE_POSITIONING_LABEL } from "@/data/sample-positioning";
 import type { DiscoveryResult, SuggestedPage } from "@/lib/engine/discover";
@@ -217,6 +219,7 @@ export function ScanForm() {
         setStage("Report ready");
         setReportId(event.reportId);
         setPhase("done");
+        rememberOwnerToken(event.reportId, event.deleteToken);
         try {
           localStorage.removeItem(DRAFT_KEY);
         } catch {
@@ -245,7 +248,11 @@ export function ScanForm() {
         <div className="col-span-12 lg:col-span-8 lg:col-start-5">
           <p className="text-[15px] leading-relaxed text-ink-2">
             A messaging guide, positioning document, brand voice, or strategy memo. Markdown or plain text, up to{" "}
-            {LIMITS.maxSourceChars.toLocaleString()} characters. Used for this scan and kept only inside the report.
+            {LIMITS.maxSourceChars.toLocaleString()} characters.
+          </p>
+          <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
+            Your document is read once and not saved. The report keeps only the sentences it quotes, and you can delete the
+            report afterward. <Link href="/privacy" className="link">How this works</Link>.
           </p>
           <div
             className="mt-6"

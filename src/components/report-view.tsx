@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { SEVERITIES, type DriftFinding, type DriftReport, type PageAnalysis, type Severity } from "@/lib/engine/schema";
 import { ScoreInline, ScoreRuler } from "./score-ring";
 import { SeverityCount, SeverityMark } from "./severity-badge";
+import { OwnerActions } from "./owner-actions";
 import { ShareBar } from "./share-bar";
 
 const SEVERITY_ORDER: Record<Severity, number> = { critical: 0, major: 1, minor: 2, info: 3 };
@@ -72,8 +74,10 @@ export function ReportView({ report, shareUrl, example = false }: { report: Drif
 
       <footer className="rule mt-20 pt-6 text-sm text-muted">
         Read with <span className="font-mono">{report.model}</span>. Overall score weights pages by importance: high 3x, medium 2x, low 1x. Scores are a
-        model&apos;s judgment of alignment. Read them as a ranking across pages rather than a grade.
+        model&apos;s judgment of alignment. Read them as a ranking across pages rather than a grade. This report keeps only the
+        sentences it quotes; the full document was not saved. <Link href="/privacy" className="link">Privacy</Link>.
       </footer>
+      {!example && <OwnerActions reportId={report.id} />}
     </article>
   );
 }

@@ -1,15 +1,16 @@
 import { runScan } from "@/lib/engine/analyze";
 import { scanRequestSchema, type ScanEvent } from "@/lib/engine/schema";
 import { normalizeSiteUrl, UnsafeUrlError } from "@/lib/engine/url-safety";
-import { checkScanAllowed, clientIp } from "@/lib/ratelimit";
-import { getReportStore, newReportId } from "@/lib/storage/reports";
+import { checkScanAllowed, visitorKey } from "@/lib/ratelimit";
+import { getReportStore, hashToken, newOwnerToken, newReportId } from "@/lib/storage/reports";
 
 export const maxDuration = 300;
 
 /**
  * POST /api/scan
  * Body: ScanRequest. Streams newline-delimited JSON ScanEvents and ends with
- * { type: "done", reportId } once the report is persisted.
+ * { type: "done", reportId, deleteToken } once the report is persisted. The
+ * delete token is sent once, here, and only its hash is stored.
  */
 export async function POST(request: Request): Promise<Response> {
   let body: unknown;
@@ -36,8 +37,7 @@ export async function POST(request: Request): Promise<Response> {
     return json({ error: "Each page URL must be unique." }, 400);
   }
 
-  const ip = clientIp(request);
-  const allowed = await checkScanAllowed(ip);
+  const allowed = await checkScanAllowed(visitorKey(request));
   if (allowed.blocked) {
     return json({ error: allowed.message, retryAfterSeconds: allowed.retryAfterSeconds }, 429, {
       "Retry-After": String(allowed.retryAfterSeconds),
@@ -45,6 +45,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const id = newReportId();
+  const deleteToken = newOwnerToken();
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -58,8 +59,9 @@ export async function POST(request: Request): Promise<Response> {
       };
       try {
         const report = await runScan(parsed.data, { id, emit, signal: request.signal });
+        report.ownerTokenHash = hashToken(deleteToken);
         await getReportStore().save(report);
-        emit({ type: "done", reportId: id, overallScore: report.overallScore });
+        emit({ type: "done", reportId: id, overallScore: report.overallScore, deleteToken });
       } catch (err) {
         const message = err instanceof Error ? err.message : "Scan failed.";
         console.error("[scan] failed", { id, message });
