@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Cache Components is off on purpose: report pages are fully dynamic and must
+  // return a real 404 for a missing id, which a prerendered shell cannot do.
+  cacheComponents: false,
+  partialPrefetching: false,
   turbopack: {
     rules: {
       "*.css": {
@@ -11,10 +13,10 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  // Open Graph images read the display font from disk at request time.
+  // Open Graph images read the display fonts from disk at request time.
+  // Keys are globs, and "[id]" would be read as a character class, so match every route.
   outputFileTracingIncludes: {
-    "/opengraph-image": ["./src/app/fonts/**/*"],
-    "/r/[id]/opengraph-image": ["./src/app/fonts/**/*"],
+    "/**": ["./src/app/fonts/**/*"],
   },
 };
 

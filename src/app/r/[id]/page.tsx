@@ -7,13 +7,8 @@ import { siteUrl } from "@/lib/site";
 
 type Params = Promise<{ id: string }>;
 
-/**
- * Report pages render fully at request time rather than as a partial prerender:
- * the report is the whole page, and a missing report must return a real 404
- * status, which a streamed shell cannot do once headers are sent. With Cache
- * Components on, `instant = false` opts this route into blocking rendering.
- */
-export const instant = false;
+/** Fully dynamic: the report is the whole page, and a missing id must be a real 404. */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;

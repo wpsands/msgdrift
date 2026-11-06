@@ -3,8 +3,7 @@ import { DeleteReportForm } from "./delete-form";
 
 export const metadata: Metadata = { title: "Delete report", robots: { index: false, follow: false } };
 
-/** Reads params at request time; blocking render keeps this a plain dynamic page. */
-export const instant = false;
+export const dynamic = "force-dynamic";
 
 export default async function DeleteReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

@@ -15,7 +15,7 @@ A Next.js 16 web app (App Router, TypeScript, Tailwind v4) that detects semantic
 
 - Model access goes through Vercel AI Gateway with `provider/model` strings. Fetch the live list before changing `DEFAULT_MODEL`; never type a model ID from memory.
 - AI SDK and Next.js APIs: read `node_modules/ai/docs/` and `node_modules/next/dist/docs/` before writing code that uses them. Both move faster than training data.
-- Cache Components is on. Any component that reads request-time or stored data must sit inside a `<Suspense>` boundary, or the route must export `instant = false` to render as a blocking route (the report page does this so missing reports return a real 404).
+- Cache Components is off on purpose (`cacheComponents: false` in next.config). Report pages are `force-dynamic` so a missing id returns a real 404; with Cache Components the prerendered shell always answered 200. Do not turn it back on without solving that.
 - OG images load `src/app/fonts/InstrumentSerif-Regular.ttf` from disk via `src/lib/og.tsx`. Node's fetch does not support `file:` URLs, so do not switch back to the `new URL(..., import.meta.url)` pattern.
 - Voice: no em or en dashes in user-facing copy, no "not X, it's Y" constructions, no agency vocabulary. Claims carry numbers or examples.
 - Design: a writer's tool. White page only (no dark mode), IBM Plex Sans for UI and headlines, Plex Serif for quoted copy, Plex Mono for small labels. Layout on the 12-column `grid-12` with hairline rules, never cards, shadows, gradients, rings, icons, or animation beyond the progress pulse. One blue (`--blue`) for anything interactive or editorial; yellow (`.mark`) only to highlight a phrase. Tokens and primitives live in `src/app/globals.css`.
