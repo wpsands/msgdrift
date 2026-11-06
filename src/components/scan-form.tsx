@@ -388,7 +388,7 @@ export function ScanForm() {
                       addManual();
                     }
                   }}
-                  placeholder="Add a page by URL, like yourcompany.com/solutions/enterprise"
+                  placeholder="Add a page by URL"
                   className="field font-mono text-sm"
                 />
               </div>

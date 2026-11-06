@@ -137,7 +137,7 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-3">
             <p className="label">Why it exists</p>
           </div>
-          <div className="col-span-12 lg:col-span-6 lg:col-start-5">
+          <div className="col-span-12 lg:col-span-5 lg:col-start-5">
             <p className="quote text-xl leading-relaxed">
               I run a fractional GTM practice. The first thing I check on a new client is whether the live site still matches the
               positioning the leadership team agreed on. It rarely does. This is the tool I built to do that check in minutes, and

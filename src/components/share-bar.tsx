@@ -25,7 +25,7 @@ export function ShareBar({ reportId, shareUrl, example }: { reportId: string; sh
       </button>
       <a href={`${base}?format=md`} className="link">Download markdown</a>
       <a href={`${base}?format=json`} className="link">JSON</a>
-      <Link href="/scan" className="text-muted hover:text-blue">Run your own</Link>
+      <Link href="/scan" className="link">Scan your own site</Link>
     </div>
   );
 }
