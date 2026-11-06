@@ -15,7 +15,8 @@ A Next.js 16 web app (App Router, TypeScript, Tailwind v4) that detects semantic
 
 - Model access goes through Vercel AI Gateway with `provider/model` strings. Fetch the live list before changing `DEFAULT_MODEL`; never type a model ID from memory.
 - AI SDK and Next.js APIs: read `node_modules/ai/docs/` and `node_modules/next/dist/docs/` before writing code that uses them. Both move faster than training data.
-- Cache Components is on. Any component that reads request-time or stored data must sit inside a `<Suspense>` boundary.
+- Cache Components is on. Any component that reads request-time or stored data must sit inside a `<Suspense>` boundary, or the route must export `instant = false` to render as a blocking route (the report page does this so missing reports return a real 404).
+- OG images load `src/app/fonts/InstrumentSerif-Regular.ttf` from disk via `src/lib/og.tsx`. Node's fetch does not support `file:` URLs, so do not switch back to the `new URL(..., import.meta.url)` pattern.
 - Voice: no em or en dashes in user-facing copy, no "not X, it's Y" constructions, no agency vocabulary. Claims carry numbers or examples.
 - Status and severity are never color alone. Every badge carries a label and icon.
 - URLs from visitors go through `normalizeSiteUrl` and `assertPublicHost`. Do not add a fetch path that skips them.

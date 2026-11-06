@@ -214,7 +214,7 @@ function DriftBackdrop() {
   return (
     <svg
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-full w-full text-ink/[0.08]"
+      className="pointer-events-none absolute inset-x-0 top-0 -z-0 hidden h-full w-full text-ink/[0.08] md:block"
       viewBox="0 0 1200 600"
       preserveAspectRatio="none"
       fill="none"

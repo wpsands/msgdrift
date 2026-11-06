@@ -399,7 +399,7 @@ export function ScanForm() {
         )}
         {rows.length > 0 && (
           <p className="mt-3 text-xs text-muted">
-            {selected.length} of {LIMITS.maxPages} pages selected. Importance weights the overall score: high 3x, medium 2x, low 1x.
+            {selected.length} page{selected.length === 1 ? "" : "s"} selected (max {LIMITS.maxPages}). Importance weights the overall score: high 3x, medium 2x, low 1x.
           </p>
         )}
       </section>

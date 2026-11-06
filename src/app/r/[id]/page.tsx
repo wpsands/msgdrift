@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { ReportView } from "@/components/report-view";
 import { bandLabel } from "@/components/score-ring";
 import { getReportStore, isValidReportId } from "@/lib/storage/reports";
 import { siteUrl } from "@/lib/site";
 
 type Params = Promise<{ id: string }>;
+
+/**
+ * Report pages render fully at request time rather than as a partial prerender:
+ * the report is the whole page, and a missing report must return a real 404
+ * status, which a streamed shell cannot do once headers are sent. With Cache
+ * Components on, `instant = false` opts this route into blocking rendering.
+ */
+export const instant = false;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
@@ -25,36 +32,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default function ReportPage({ params }: { params: Params }) {
-  return (
-    <Suspense fallback={<ReportSkeleton />}>
-      <ReportLoader params={params} />
-    </Suspense>
-  );
-}
-
-async function ReportLoader({ params }: { params: Params }) {
+export default async function ReportPage({ params }: { params: Params }) {
   const { id } = await params;
   if (!isValidReportId(id)) notFound();
   const report = await getReportStore().load(id);
   if (!report) notFound();
   return <ReportView report={report} shareUrl={`${siteUrl()}/r/${id}`} />;
-}
-
-function ReportSkeleton() {
-  return (
-    <div className="mx-auto max-w-5xl animate-pulse px-4 py-14 sm:px-6" aria-busy="true" aria-live="polite">
-      <div className="grid gap-8 md:grid-cols-[auto_1fr]">
-        <div className="h-[168px] w-[168px] rounded-full border-[10px] border-line" />
-        <div className="space-y-4">
-          <div className="h-3 w-24 rounded bg-surface-2" />
-          <div className="h-10 w-64 rounded bg-surface-2" />
-          <div className="h-3 w-80 rounded bg-surface-2" />
-          <div className="h-8 w-full rounded bg-surface-2" />
-        </div>
-      </div>
-      <div className="card mt-10 h-32" />
-      <p className="sr-only">Loading report</p>
-    </div>
-  );
 }
