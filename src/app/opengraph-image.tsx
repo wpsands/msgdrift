@@ -1,12 +1,12 @@
 import { ImageResponse } from "next/og";
-import { DriftMarkSvg, loadDisplayFont, OG_COLORS, OG_SIZE, ogFonts } from "@/lib/og";
+import { loadOgFonts, OG_COLORS, OG_SIZE, ogFontList, OgWordmark } from "@/lib/og";
 
-export const alt = "msgdrift: semantic messaging drift detection";
+export const alt = "msgdrift: find where your website stopped saying what you meant";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
 export default async function Image() {
-  const font = await loadDisplayFont();
+  const fonts = await loadOgFonts();
   return new ImageResponse(
     (
       <div
@@ -16,28 +16,28 @@ export default async function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: 64,
-          background: OG_COLORS.bg,
+          padding: "56px 64px",
+          background: OG_COLORS.paper,
           color: OG_COLORS.ink,
-          fontFamily: "Instrument Serif",
+          fontFamily: "IBM Plex Sans",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 30, fontFamily: "monospace", fontWeight: 700 }}>
-          <DriftMarkSvg />
-          msgdrift
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ fontSize: 80, lineHeight: 1.05, maxWidth: 1040, letterSpacing: -1 }}>Find where your website stopped saying what you meant.</div>
-          <div style={{ fontSize: 30, color: OG_COLORS.ink2, fontFamily: "sans-serif", maxWidth: 1000 }}>
-            Paste your positioning doc. Get a line-by-line drift report on your live pages. Free, no login.
+        <OgWordmark />
+        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", fontSize: 84, lineHeight: 1, letterSpacing: -2, maxWidth: 1060 }}>
+            <span>Find where your website stopped saying&nbsp;</span>
+            <span style={{ background: OG_COLORS.yellow, padding: "0 6px" }}>what you meant.</span>
+          </div>
+          <div style={{ fontSize: 30, color: OG_COLORS.ink2, fontFamily: "IBM Plex Serif", maxWidth: 980, lineHeight: 1.35 }}>
+            Paste your positioning document. Read a line-by-line drift report on your live pages.
           </div>
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24, color: OG_COLORS.muted, fontFamily: "sans-serif" }}>
-          <span>Semantic messaging drift detection, built on Claude</span>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 22, color: OG_COLORS.muted, borderTop: `1px solid ${OG_COLORS.ink}`, paddingTop: 20 }}>
+          <span>Free, no login. Open source.</span>
           <span>msgdrift.com</span>
         </div>
       </div>
     ),
-    { ...size, fonts: ogFonts(font) },
+    { ...size, fonts: ogFontList(fonts) },
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Check, CircleDashed, Loader2, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SAMPLE_POSITIONING, SAMPLE_POSITIONING_LABEL } from "@/data/sample-positioning";
@@ -40,7 +39,6 @@ export function ScanForm() {
   const abortRef = useRef<AbortController | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Restore an unsent draft, per viewer only.
   useEffect(() => {
     // Storage is an external system; restore after hydration in a callback so the
     // server and first client render match.
@@ -69,6 +67,7 @@ export function ScanForm() {
   const docChars = doc.length;
   const docOk = docChars >= LIMITS.minSourceChars && docChars <= LIMITS.maxSourceChars;
   const selected = useMemo(() => rows.filter((r) => r.selected), [rows]);
+  const locked = phase === "running" || phase === "done";
 
   const onFile = useCallback(async (file: File) => {
     if (file.size > 400_000) {
@@ -94,9 +93,7 @@ export function ScanForm() {
       const data = (await res.json()) as DiscoveryResult & { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not read that site.");
       setDiscovery(data);
-      setRows(
-        data.suggestions.map((s, i) => ({ ...s, key: `${i}-${s.url}`, selected: true })),
-      );
+      setRows(data.suggestions.map((s, i) => ({ ...s, key: `${i}-${s.url}`, selected: true })));
       setPhase("pages");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read that site.");
@@ -201,20 +198,20 @@ export function ScanForm() {
   function handleEvent(event: ScanEvent) {
     switch (event.type) {
       case "start":
-        setStage(`Fetching ${event.pages} page${event.pages === 1 ? "" : "s"}`);
+        setStage(`Reading ${event.pages} page${event.pages === 1 ? "" : "s"}`);
         break;
       case "fetch:done":
         setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, fetch: { status: event.status, chars: event.chars, title: event.title, error: event.error } } }));
         break;
       case "analyze:start":
-        setStage("Analyzing pages against your positioning");
+        setStage("Comparing pages with your positioning");
         setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, analyzing: true } }));
         break;
       case "analyze:done":
         setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, analyzing: false, analysis: { score: event.score, findings: event.findings } } }));
         break;
       case "summary:start":
-        setStage("Writing the executive summary");
+        setStage("Writing the summary");
         break;
       case "done":
         setStage("Report ready");
@@ -241,250 +238,235 @@ export function ScanForm() {
   }
 
   return (
-    <div className="mt-10 space-y-8">
-      {/* Step 1: positioning document */}
-      <section className="card p-5 sm:p-6">
-        <StepHeader n={1} title="Your positioning document" done={docOk} />
-        <p className="mt-1 text-sm text-muted">
-          Messaging guide, positioning doc, brand voice, a strategy memo. Markdown or plain text, up to {LIMITS.maxSourceChars.toLocaleString()} characters. It is
-          used for this scan and stored only inside the report.
-        </p>
-        <div
-          className="mt-4"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            const f = e.dataTransfer.files?.[0];
-            if (f) void onFile(f);
-          }}
-        >
-          <label htmlFor="doc" className="sr-only">Positioning document</label>
-          <textarea
-            id="doc"
-            value={doc}
-            onChange={(e) => setDoc(e.target.value.slice(0, LIMITS.maxSourceChars))}
-            disabled={phase === "running"}
-            rows={10}
-            placeholder={"# Positioning\n\nWe are the ... for ... who need ...\n\nCore value props:\n1. ...\n2. ...\n\nWho we do not serve: ...\n\nTone: ..."}
-            className="w-full resize-y rounded-lg border border-line bg-bg px-3.5 py-3 font-mono text-[13px] leading-relaxed text-ink placeholder:text-muted/70 focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-accent/30"
-          />
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          <input ref={fileRef} type="file" accept=".md,.txt,.markdown,text/plain,text/markdown" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.currentTarget.value = ""; }} />
-          <button type="button" onClick={() => fileRef.current?.click()} disabled={phase === "running"} className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-ink-2 hover:border-line-strong hover:text-ink">
-            <Upload className="h-4 w-4" aria-hidden="true" /> Upload .md or .txt
-          </button>
-          <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setError(null); }} disabled={phase === "running"} className="rounded-full border border-line px-3 py-1.5 text-ink-2 hover:border-line-strong hover:text-ink">
-            Use the sample document
-          </button>
-          <span className={`ml-auto font-mono text-xs ${docChars > LIMITS.maxSourceChars * 0.95 ? "text-warn" : "text-muted"}`}>
-            {docChars.toLocaleString()} / {LIMITS.maxSourceChars.toLocaleString()}
-          </span>
-        </div>
-      </section>
-
-      {/* Step 2: site and pages */}
-      <section className="card p-5 sm:p-6">
-        <StepHeader n={2} title="Pages to check" done={phase !== "input" && selected.length > 0} />
-        <p className="mt-1 text-sm text-muted">
-          Enter the site. msgdrift reads the homepage, finds the pages most likely to carry positioning, and proposes up to {LIMITS.maxPages}. Edit the list before you run.
-        </p>
-        <form
-          className="mt-4 flex flex-col gap-2 sm:flex-row"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void discover();
-          }}
-        >
-          <label htmlFor="site" className="sr-only">Website URL</label>
-          <input
-            id="site"
-            type="text"
-            inputMode="url"
-            autoComplete="url"
-            value={site}
-            onChange={(e) => setSite(e.target.value)}
-            disabled={phase === "running"}
-            placeholder="yourcompany.com"
-            className="flex-1 rounded-lg border border-line bg-bg px-3.5 py-2.5 font-mono text-sm text-ink placeholder:text-muted/70 focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-accent/30"
-          />
-          <button
-            type="submit"
-            disabled={discovering || !site.trim() || phase === "running"}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-bg hover:bg-accent hover:text-accent-ink disabled:opacity-50"
+    <div className="mt-16">
+      {/* Step 1 */}
+      <section className="rule-strong grid-12 gap-y-6 pt-6 pb-14">
+        <StepLabel n="01" title="Your positioning document" done={docOk} />
+        <div className="col-span-12 lg:col-span-8 lg:col-start-5">
+          <p className="text-[15px] leading-relaxed text-ink-2">
+            A messaging guide, positioning document, brand voice, or strategy memo. Markdown or plain text, up to{" "}
+            {LIMITS.maxSourceChars.toLocaleString()} characters. Used for this scan and kept only inside the report.
+          </p>
+          <div
+            className="mt-6"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const f = e.dataTransfer.files?.[0];
+              if (f) void onFile(f);
+            }}
           >
-            {discovering ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4" aria-hidden="true" />}
-            {discovering ? "Reading site" : rows.length ? "Find pages again" : "Find pages"}
-          </button>
-        </form>
-
-        {discovery?.homepageError && (
-          <p className="mt-3 rounded-md bg-warn-soft px-3 py-2 text-sm text-ink-2">
-            The homepage could not be read ({discovery.homepageError}). You can still add page URLs by hand below.
-          </p>
-        )}
-
-        {rows.length > 0 && (
-          <ul className="mt-4 divide-y divide-line rounded-lg border border-line">
-            {rows.map((row) => {
-              const prog = progress[row.url];
-              return (
-                <li key={row.key} className="flex flex-wrap items-center gap-3 px-3 py-2.5 sm:flex-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={row.selected}
-                    disabled={phase === "running"}
-                    onChange={(e) => setRows((rs) => rs.map((r) => (r.key === row.key ? { ...r, selected: e.target.checked } : r)))}
-                    aria-label={`Include ${row.label}`}
-                    className="h-4 w-4 accent-[var(--accent)]"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <input
-                      type="text"
-                      value={row.label}
-                      disabled={phase === "running"}
-                      onChange={(e) => setRows((rs) => rs.map((r) => (r.key === row.key ? { ...r, label: e.target.value.slice(0, 120) } : r)))}
-                      aria-label="Page label"
-                      className="w-full bg-transparent text-sm font-medium text-ink focus:outline-none"
-                    />
-                    <p className="truncate font-mono text-xs text-muted">{row.url}</p>
-                  </div>
-                  {phase === "running" || phase === "done" ? (
-                    <ProgressCell prog={prog} selected={row.selected} />
-                  ) : (
-                    <>
-                      <select
-                        value={row.importance}
-                        onChange={(e) => setRows((rs) => rs.map((r) => (r.key === row.key ? { ...r, importance: e.target.value as PageImportance } : r)))}
-                        aria-label="Importance"
-                        className="rounded-md border border-line bg-bg px-2 py-1 font-mono text-xs text-ink-2"
-                      >
-                        {IMPORTANCES.map((imp) => (
-                          <option key={imp} value={imp}>{imp}</option>
-                        ))}
-                      </select>
-                      <button type="button" onClick={() => setRows((rs) => rs.filter((r) => r.key !== row.key))} aria-label={`Remove ${row.label}`} className="rounded-md p-1 text-muted hover:text-bad">
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    </>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
-        {phase !== "running" && phase !== "done" && (
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <label htmlFor="manual" className="sr-only">Add a page URL</label>
-            <input
-              id="manual"
-              type="text"
-              inputMode="url"
-              value={manualUrl}
-              onChange={(e) => setManualUrl(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addManual();
-                }
-              }}
-              placeholder="Add a page: yourcompany.com/solutions/enterprise"
-              className="flex-1 rounded-lg border border-line bg-bg px-3.5 py-2 font-mono text-xs text-ink placeholder:text-muted/70 focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-accent/30"
+            <label htmlFor="doc" className="sr-only">Positioning document</label>
+            <textarea
+              id="doc"
+              value={doc}
+              onChange={(e) => setDoc(e.target.value.slice(0, LIMITS.maxSourceChars))}
+              disabled={locked}
+              rows={12}
+              placeholder={"Positioning\n\nWe are the ... for ... who need ...\n\nCore value propositions\n1. ...\n2. ...\n\nWho we do not serve\n...\n\nTone\n..."}
+              className="field field-area"
             />
-            <button type="button" onClick={addManual} disabled={!manualUrl.trim()} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm text-ink-2 hover:border-line-strong hover:text-ink disabled:opacity-50">
-              <Plus className="h-4 w-4" aria-hidden="true" /> Add
-            </button>
           </div>
-        )}
-        {rows.length > 0 && (
-          <p className="mt-3 text-xs text-muted">
-            {selected.length} page{selected.length === 1 ? "" : "s"} selected (max {LIMITS.maxPages}). Importance weights the overall score: high 3x, medium 2x, low 1x.
-          </p>
-        )}
+          <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
+            <input ref={fileRef} type="file" accept=".md,.txt,.markdown,text/plain,text/markdown" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.currentTarget.value = ""; }} />
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={locked} className="link disabled:opacity-40">Upload a .md or .txt file</button>
+            <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setError(null); }} disabled={locked} className="link disabled:opacity-40">
+              Use the sample document
+            </button>
+            <span className={`ml-auto font-mono text-xs ${docChars > LIMITS.maxSourceChars * 0.95 ? "text-blue" : "text-muted"}`}>
+              {docChars.toLocaleString()} / {LIMITS.maxSourceChars.toLocaleString()}
+            </span>
+          </div>
+        </div>
       </section>
 
-      {/* Step 3: run */}
-      <section className="card p-5 sm:p-6">
-        <StepHeader n={3} title="Run the scan" done={phase === "done"} />
-        {error && (
-          <p role="alert" className="mt-3 flex items-start gap-2 rounded-md bg-bad-soft px-3 py-2 text-sm text-ink">
-            <X className="mt-0.5 h-4 w-4 shrink-0 text-bad" aria-hidden="true" />
-            {error}
+      {/* Step 2 */}
+      <section className="rule-strong grid-12 gap-y-6 pt-6 pb-14">
+        <StepLabel n="02" title="Pages to read" done={phase !== "input" && selected.length > 0} />
+        <div className="col-span-12 lg:col-span-8 lg:col-start-5">
+          <p className="text-[15px] leading-relaxed text-ink-2">
+            Enter the site. msgdrift reads the homepage, finds the pages most likely to carry positioning, and proposes up to{" "}
+            {LIMITS.maxPages}. Edit the list before you run.
           </p>
-        )}
-        {phase === "running" || phase === "done" ? (
-          <div className="mt-4 flex items-center gap-3 text-sm text-ink-2" aria-live="polite">
-            {phase === "done" ? <Check className="h-4 w-4 text-good" aria-hidden="true" /> : <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />}
-            <span>{stage}</span>
-            {phase === "running" && (
-              <button type="button" onClick={cancel} className="ml-auto text-xs text-muted hover:text-ink">Cancel</button>
-            )}
-            {phase === "done" && reportId && (
-              <a href={`/r/${reportId}`} className="ml-auto text-xs text-accent hover:underline">Open report</a>
-            )}
-          </div>
-        ) : (
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={run}
-              disabled={!docOk || selected.length === 0}
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-ink transition-opacity hover:opacity-90 disabled:opacity-40"
-            >
-              Run drift scan
+          <form
+            className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void discover();
+            }}
+          >
+            <div className="flex-1">
+              <label htmlFor="site" className="label">Website</label>
+              <input
+                id="site"
+                type="text"
+                inputMode="url"
+                autoComplete="url"
+                value={site}
+                onChange={(e) => setSite(e.target.value)}
+                disabled={locked}
+                placeholder="yourcompany.com"
+                className="field mt-1 font-mono text-[15px]"
+              />
+            </div>
+            <button type="submit" disabled={discovering || !site.trim() || locked} className="btn btn-ghost">
+              {discovering ? "Reading the site" : rows.length ? "Find pages again" : "Find pages"}
             </button>
-            <p className="text-xs text-muted">
-              {!docOk ? `Add your positioning document first (${LIMITS.minSourceChars} characters minimum).` : selected.length === 0 ? "Pick the pages to check." : `${selected.length} page${selected.length === 1 ? "" : "s"}, about ${Math.max(1, Math.ceil(selected.length / 3) * 30 + 20)} seconds.`}
+          </form>
+
+          {discovery?.homepageError && (
+            <p className="mt-4 border-l-2 border-blue pl-4 text-sm text-ink-2">
+              The homepage could not be read ({discovery.homepageError}). You can still add page URLs by hand below.
             </p>
-          </div>
-        )}
-        <p className="mt-4 text-xs text-muted">
-          Free scans are limited to 3 per hour per visitor so the shared model budget lasts. For unlimited runs, use the{" "}
-          <a href="https://github.com/wpsands/msgdrift/tree/main/cli" className="underline hover:text-ink" target="_blank" rel="noopener noreferrer">open-source CLI</a> with your own key.
-        </p>
+          )}
+
+          {rows.length > 0 && (
+            <ul className="mt-8 border-t border-ink">
+              {rows.map((row) => {
+                const prog = progress[row.url];
+                return (
+                  <li key={row.key} className="grid grid-cols-[1.25rem_1fr] items-start gap-x-4 gap-y-2 border-b border-rule py-3 sm:grid-cols-[1.25rem_1fr_auto]">
+                    <input
+                      type="checkbox"
+                      checked={row.selected}
+                      disabled={locked}
+                      onChange={(e) => setRows((rs) => rs.map((r) => (r.key === row.key ? { ...r, selected: e.target.checked } : r)))}
+                      aria-label={`Include ${row.label}`}
+                      className="mt-1.5 h-4 w-4 accent-[var(--blue)]"
+                    />
+                    <div className="min-w-0">
+                      <input
+                        type="text"
+                        value={row.label}
+                        disabled={locked}
+                        onChange={(e) => setRows((rs) => rs.map((r) => (r.key === row.key ? { ...r, label: e.target.value.slice(0, 120) } : r)))}
+                        aria-label="Page label"
+                        className="w-full bg-transparent text-[15px] font-medium focus:outline-none focus:text-blue"
+                      />
+                      <p className="truncate font-mono text-xs text-muted">{row.url}</p>
+                    </div>
+                    <div className="col-start-2 flex items-center gap-4 sm:col-start-3">
+                      {locked ? (
+                        <ProgressCell prog={prog} selected={row.selected} />
+                      ) : (
+                        <>
+                          <select
+                            value={row.importance}
+                            onChange={(e) => setRows((rs) => rs.map((r) => (r.key === row.key ? { ...r, importance: e.target.value as PageImportance } : r)))}
+                            aria-label="Importance"
+                            className="border-b border-rule-strong bg-transparent py-1 font-mono text-xs text-ink-2 focus:border-blue focus:outline-none"
+                          >
+                            {IMPORTANCES.map((imp) => (
+                              <option key={imp} value={imp}>{imp} importance</option>
+                            ))}
+                          </select>
+                          <button type="button" onClick={() => setRows((rs) => rs.filter((r) => r.key !== row.key))} className="font-mono text-xs text-muted hover:text-blue">
+                            remove
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {!locked && (
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label htmlFor="manual" className="sr-only">Add a page URL</label>
+                <input
+                  id="manual"
+                  type="text"
+                  inputMode="url"
+                  value={manualUrl}
+                  onChange={(e) => setManualUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addManual();
+                    }
+                  }}
+                  placeholder="Add a page by URL, like yourcompany.com/solutions/enterprise"
+                  className="field font-mono text-sm"
+                />
+              </div>
+              <button type="button" onClick={addManual} disabled={!manualUrl.trim()} className="btn btn-ghost btn-sm">Add</button>
+            </div>
+          )}
+          {rows.length > 0 && (
+            <p className="mt-4 text-sm text-muted">
+              {selected.length} page{selected.length === 1 ? "" : "s"} selected (max {LIMITS.maxPages}). Importance weights the overall score: high 3x, medium 2x, low 1x.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Step 3 */}
+      <section className="rule-strong grid-12 gap-y-6 pt-6 pb-10">
+        <StepLabel n="03" title="Run the scan" done={phase === "done"} />
+        <div className="col-span-12 lg:col-span-8 lg:col-start-5">
+          {error && (
+            <p role="alert" className="mb-6 border-l-2 border-ink pl-4 text-[15px] text-ink">{error}</p>
+          )}
+          {locked ? (
+            <div className="flex items-center gap-4 text-[15px]" aria-live="polite">
+              <span className={phase === "done" ? "text-blue" : "progress-pulse text-blue"} aria-hidden="true">{phase === "done" ? "■" : "■"}</span>
+              <span>{stage}</span>
+              {phase === "running" && (
+                <button type="button" onClick={cancel} className="ml-auto text-sm text-muted hover:text-blue">Cancel</button>
+              )}
+              {phase === "done" && reportId && (
+                <a href={`/r/${reportId}`} className="link ml-auto text-sm">Open report</a>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <button type="button" onClick={run} disabled={!docOk || selected.length === 0} className="btn">
+                Run drift scan
+              </button>
+              <p className="text-sm text-muted">
+                {!docOk
+                  ? `Add your positioning document first (${LIMITS.minSourceChars} characters minimum).`
+                  : selected.length === 0
+                    ? "Choose the pages to read."
+                    : `${selected.length} page${selected.length === 1 ? "" : "s"}, about ${Math.max(1, Math.ceil(selected.length / 3) * 30 + 20)} seconds.`}
+              </p>
+            </div>
+          )}
+          <p className="mt-8 text-sm text-muted">
+            Free scans are limited to 3 per hour per visitor so the shared model budget lasts. For unlimited runs, use the{" "}
+            <a href="https://github.com/wpsands/msgdrift/tree/main/cli" className="link" target="_blank" rel="noopener noreferrer">command line version</a> with your own key.
+          </p>
+        </div>
       </section>
     </div>
   );
 }
 
-function StepHeader({ n, title, done }: { n: number; title: string; done: boolean }) {
+function StepLabel({ n, title, done }: { n: string; title: string; done: boolean }) {
   return (
-    <h2 className="flex items-center gap-3 text-lg font-medium text-ink">
-      <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full font-mono text-xs ${done ? "bg-good text-white" : "border border-line text-muted"}`} aria-hidden="true">
-        {done ? <Check className="h-4 w-4" /> : n}
-      </span>
-      {title}
-    </h2>
+    <div className="col-span-12 lg:col-span-3">
+      <p className="font-mono text-xs text-muted">{n}{done && <span className="ml-2 text-blue">done</span>}</p>
+      <h2 className="h-sub mt-2">{title}</h2>
+    </div>
   );
 }
 
 function ProgressCell({ prog, selected }: { prog?: PageProgress; selected: boolean }) {
   if (!selected) return <span className="font-mono text-xs text-muted">skipped</span>;
-  if (!prog?.fetch) {
-    return (
-      <span className="inline-flex items-center gap-1.5 font-mono text-xs text-muted">
-        <CircleDashed className="progress-pulse h-3.5 w-3.5" aria-hidden="true" /> fetching
-      </span>
-    );
-  }
+  if (!prog?.fetch) return <span className="progress-pulse font-mono text-xs text-muted">reading</span>;
   if (prog.fetch.error) {
-    return <span className="font-mono text-xs text-bad" title={prog.fetch.error}>{prog.fetch.error.length > 28 ? `${prog.fetch.error.slice(0, 28)}…` : prog.fetch.error}</span>;
+    return <span className="font-mono text-xs text-ink" title={prog.fetch.error}>{prog.fetch.error.length > 28 ? `${prog.fetch.error.slice(0, 28)}…` : prog.fetch.error}</span>;
   }
   if (prog.analysis) {
     return (
-      <span className="inline-flex items-center gap-2 font-mono text-xs text-ink">
-        <Check className="h-3.5 w-3.5 text-good" aria-hidden="true" />
+      <span className="font-mono text-xs text-ink">
         {prog.analysis.score}/100 · {prog.analysis.findings} finding{prog.analysis.findings === 1 ? "" : "s"}
       </span>
     );
   }
-  if (prog.analyzing) {
-    return (
-      <span className="inline-flex items-center gap-1.5 font-mono text-xs text-accent">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> analyzing
-      </span>
-    );
-  }
+  if (prog.analyzing) return <span className="progress-pulse font-mono text-xs text-blue">comparing</span>;
   return <span className="font-mono text-xs text-muted">{(prog.fetch.chars / 1000).toFixed(1)}k chars · queued</span>;
 }

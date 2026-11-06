@@ -18,7 +18,8 @@ A Next.js 16 web app (App Router, TypeScript, Tailwind v4) that detects semantic
 - Cache Components is on. Any component that reads request-time or stored data must sit inside a `<Suspense>` boundary, or the route must export `instant = false` to render as a blocking route (the report page does this so missing reports return a real 404).
 - OG images load `src/app/fonts/InstrumentSerif-Regular.ttf` from disk via `src/lib/og.tsx`. Node's fetch does not support `file:` URLs, so do not switch back to the `new URL(..., import.meta.url)` pattern.
 - Voice: no em or en dashes in user-facing copy, no "not X, it's Y" constructions, no agency vocabulary. Claims carry numbers or examples.
-- Status and severity are never color alone. Every badge carries a label and icon.
+- Design: a writer's tool. White page only (no dark mode), IBM Plex Sans for UI and headlines, Plex Serif for quoted copy, Plex Mono for small labels. Layout on the 12-column `grid-12` with hairline rules, never cards, shadows, gradients, rings, icons, or animation beyond the progress pulse. One blue (`--blue`) for anything interactive or editorial; yellow (`.mark`) only to highlight a phrase. Tokens and primitives live in `src/app/globals.css`.
+- Status and severity are never color alone. Severity marks carry a glyph and the word; scores carry the band name.
 - URLs from visitors go through `normalizeSiteUrl` and `assertPublicHost`. Do not add a fetch path that skips them.
 - Tests: `pnpm test` (vitest), `pnpm typecheck`, `pnpm lint`, `pnpm build` must all pass before a commit. Bug fixes add a test.
 - pnpm installs require `minimumReleaseAge: 1440` (set in `pnpm-workspace.yaml`).

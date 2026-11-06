@@ -1,19 +1,19 @@
-/** The msgdrift mark: two lines that leave the same point and part ways. */
-export function DriftMark({ className = "h-6 w-6" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={className} fill="none">
-      <path d="M4 22 C 12 22, 16 22, 28 22" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
-      <path d="M4 22 C 12 22, 18 10, 28 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="28" cy="8" r="2.5" fill="var(--accent)" />
-    </svg>
-  );
-}
-
+/**
+ * The wordmark is typographic: "msg" sits on the baseline and each letter of
+ * "drift" slips a little further below it.
+ */
 export function Wordmark({ className = "" }: { className?: string }) {
+  const drift = ["d", "r", "i", "f", "t"];
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <DriftMark className="h-6 w-6 text-ink" />
-      <span className="font-mono text-[15px] font-semibold tracking-tight text-ink">msgdrift</span>
+    <span className={`inline-flex items-baseline font-medium tracking-tight text-ink ${className}`} aria-label="msgdrift">
+      <span aria-hidden="true">msg</span>
+      <span aria-hidden="true" className="inline-flex items-baseline text-blue">
+        {drift.map((ch, i) => (
+          <span key={i} style={{ display: "inline-block", transform: `translateY(${i * 0.9}px)` }}>
+            {ch}
+          </span>
+        ))}
+      </span>
     </span>
   );
 }

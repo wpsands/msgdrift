@@ -3,23 +3,32 @@ import { Wordmark } from "./wordmark";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted sm:flex-row sm:items-start sm:justify-between sm:px-6">
-        <div className="space-y-3">
-          <Wordmark />
-          <p className="max-w-sm">
-            Semantic messaging drift detection, built on Claude. Open source under MIT. Reports contain only the pages you
-            scanned and the document you pasted. Nothing is stored beyond the report itself.
+    <footer className="border-t border-ink">
+      <div className="page grid-12 gap-y-10 py-14 text-[15px]">
+        <div className="col-span-12 md:col-span-5">
+          <Wordmark className="text-[19px]" />
+          <p className="mt-4 max-w-sm leading-relaxed text-ink-2">
+            A tool for checking a website against the document that was supposed to govern it. Open source, MIT. Reports hold
+            only the pages you scanned and the text you pasted.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-x-10 gap-y-2 sm:text-right">
-          <Link href="/scan" className="hover:text-ink">Scan your site</Link>
-          <Link href="/example" className="hover:text-ink">Example report</Link>
-          <a href="https://github.com/wpsands/msgdrift" target="_blank" rel="noopener noreferrer" className="hover:text-ink">GitHub</a>
-          <a href="https://github.com/wpsands/msgdrift/tree/main/cli" target="_blank" rel="noopener noreferrer" className="hover:text-ink">Python CLI</a>
-          <a href="https://sandsdx.com" target="_blank" rel="noopener noreferrer" className="hover:text-ink">Built by Page Sands, SandsDX</a>
-          <a href="https://pagesands.com" target="_blank" rel="noopener noreferrer" className="hover:text-ink">pagesands.com</a>
-        </div>
+        <dl className="col-span-6 md:col-span-3 md:col-start-7">
+          <dt className="label">Use</dt>
+          <dd className="mt-3 flex flex-col gap-2">
+            <Link href="/scan" className="hover:text-blue">Scan a site</Link>
+            <Link href="/example" className="hover:text-blue">Example report</Link>
+            <a href="https://github.com/wpsands/msgdrift" target="_blank" rel="noopener noreferrer" className="hover:text-blue">Source on GitHub</a>
+            <a href="https://github.com/wpsands/msgdrift/tree/main/cli" target="_blank" rel="noopener noreferrer" className="hover:text-blue">Command line version</a>
+          </dd>
+        </dl>
+        <dl className="col-span-6 md:col-span-3">
+          <dt className="label">Made by</dt>
+          <dd className="mt-3 flex flex-col gap-2">
+            <a href="https://pagesands.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue">Page Sands</a>
+            <a href="https://sandsdx.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue">SandsDX</a>
+            <span className="text-muted">Charleston, South Carolina</span>
+          </dd>
+        </dl>
       </div>
     </footer>
   );

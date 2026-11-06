@@ -6,61 +6,45 @@ const BAND_LABEL: Record<ScoreBand, string> = {
   "off-message": "Off-message",
 };
 
-const BAND_COLOR: Record<ScoreBand, string> = {
-  aligned: "var(--good)",
-  drifting: "var(--warn)",
-  "off-message": "var(--bad)",
-};
-
 export function bandLabel(score: number): string {
   return BAND_LABEL[scoreBand(score)];
 }
 
-export function bandColor(score: number): string {
-  return BAND_COLOR[scoreBand(score)];
+/**
+ * The score as a number on a ruler. The marker position repeats the number;
+ * the band is written out so the reading never depends on color.
+ */
+export function ScoreRuler({ score, label = "Alignment", compact = false }: { score: number; label?: string; compact?: boolean }) {
+  const rounded = Math.round(score);
+  const pct = Math.max(0, Math.min(100, score));
+  return (
+    <figure aria-label={`${label} ${rounded} out of 100, ${bandLabel(score)}`}>
+      <div className="flex items-baseline gap-3">
+        <span className={`font-medium tracking-tight text-ink ${compact ? "text-4xl" : "text-[5.5rem] leading-none"}`}>{rounded}</span>
+        <span className="font-mono text-sm text-muted">/ 100</span>
+        <span className={`ml-auto font-medium ${compact ? "text-sm" : "text-base"}`}>{bandLabel(score)}</span>
+      </div>
+      <div className={`ruler ${compact ? "mt-2 !h-5" : "mt-4"}`} role="img" aria-hidden="true">
+        <span className="ruler-mark" style={{ left: `${pct}%` }} />
+      </div>
+      {!compact && (
+        <figcaption className="mt-2 flex justify-between font-mono text-[11px] text-muted">
+          <span>0 off-message</span>
+          <span>60 drifting</span>
+          <span>80 aligned</span>
+          <span>100</span>
+        </figcaption>
+      )}
+    </figure>
+  );
 }
 
-/**
- * Hero number with a thin arc. The arc is a second encoding of the same number;
- * the text label names the band so the state never relies on color alone.
- */
-export function ScoreRing({ score, size = 168, label = "Alignment" }: { score: number; size?: number; label?: string }) {
-  const rounded = Math.round(score);
-  const band = scoreBand(score);
-  const stroke = 10;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const filled = (Math.max(0, Math.min(100, score)) / 100) * c;
-
+/** A number with the band beside it, for lists. */
+export function ScoreInline({ score }: { score: number }) {
   return (
-    <figure className="inline-flex flex-col items-center gap-2" aria-label={`${label} score ${rounded} out of 100, ${BAND_LABEL[band]}`}>
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-hidden="true">
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
-            fill="none"
-            stroke={BAND_COLOR[band]}
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={`${filled} ${c - filled}`}
-            transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-display leading-none text-ink" style={{ fontSize: size * 0.36 }}>
-            {rounded}
-          </span>
-          <span className="mt-1 font-mono text-[11px] uppercase tracking-wider text-muted">/ 100</span>
-        </div>
-      </div>
-      <figcaption className="flex items-center gap-2 text-sm">
-        <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: BAND_COLOR[band] }} aria-hidden="true" />
-        <span className="font-medium text-ink">{BAND_LABEL[band]}</span>
-        <span className="text-muted">· {label}</span>
-      </figcaption>
-    </figure>
+    <span className="inline-flex items-baseline gap-2">
+      <span className="font-medium tabular-nums text-ink">{Math.round(score)}</span>
+      <span className="text-sm text-muted">{bandLabel(score)}</span>
+    </span>
   );
 }

@@ -1,38 +1,31 @@
-import { AlertOctagon, AlertTriangle, Info, MessageSquareWarning } from "lucide-react";
 import type { Severity } from "@/lib/engine/schema";
 
-const META: Record<Severity, { label: string; color: string; soft: string; Icon: typeof Info; description: string }> = {
-  critical: { label: "Critical", color: "var(--bad)", soft: "var(--bad-soft)", Icon: AlertOctagon, description: "Direct contradiction of positioning or wrong audience" },
-  major: { label: "Major", color: "var(--warn)", soft: "var(--warn-soft)", Icon: AlertTriangle, description: "Key value proposition missing, diluted, or misframed" },
-  minor: { label: "Minor", color: "var(--note)", soft: "var(--note-soft)", Icon: MessageSquareWarning, description: "Tone inconsistency, stale phrasing, secondary gap" },
-  info: { label: "Info", color: "var(--muted)", soft: "var(--surface-2)", Icon: Info, description: "Worth a human look, not necessarily wrong" },
+const META: Record<Severity, { label: string; description: string }> = {
+  critical: { label: "Critical", description: "A direct contradiction of the positioning, or copy aimed at a buyer you say you do not serve." },
+  major: { label: "Major", description: "A core value proposition missing from a page where it belongs, or present but diluted or misframed." },
+  minor: { label: "Minor", description: "Tone that breaks the guide, stale phrasing from a previous position, or a secondary message that slipped." },
+  info: { label: "Info", description: "Not wrong on its face, but worth a human look. Often unused proof points or vague claims where you have specifics." },
 };
 
 export function severityMeta(severity: Severity) {
   return META[severity];
 }
 
-export function SeverityBadge({ severity, size = "sm" }: { severity: Severity; size?: "sm" | "md" }) {
-  const { label, color, soft, Icon } = META[severity];
-  const pad = size === "md" ? "px-2.5 py-1 text-sm" : "px-2 py-0.5 text-xs";
+/** A proofreader's mark: a small glyph plus the word. Never the glyph alone. */
+export function SeverityMark({ severity }: { severity: Severity }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium ${pad}`}
-      style={{ background: soft, color }}
-    >
-      <Icon className={size === "md" ? "h-4 w-4" : "h-3.5 w-3.5"} aria-hidden="true" />
-      {label}
+    <span className={`sev sev-${severity} text-ink`}>
+      <span className="sev-glyph" aria-hidden="true" />
+      {META[severity].label}
     </span>
   );
 }
 
 export function SeverityCount({ severity, count }: { severity: Severity; count: number }) {
-  const { label, color, Icon } = META[severity];
   return (
-    <div className="flex items-center gap-2.5">
-      <Icon className="h-4 w-4 shrink-0" style={{ color }} aria-hidden="true" />
-      <span className="font-mono text-lg tabular-nums text-ink">{count}</span>
-      <span className="text-sm text-muted">{label}</span>
+    <div className="flex items-baseline gap-3">
+      <span className="text-2xl font-medium tabular-nums text-ink">{count}</span>
+      <SeverityMark severity={severity} />
     </div>
   );
 }
