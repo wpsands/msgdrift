@@ -1,145 +1,103 @@
 # msgdrift
 
-Detect when your website messaging drifts from your positioning documents.
+**Find where your website stopped saying what you meant.**
 
-msgdrift is a CLI tool that uses Claude to perform **semantic analysis** of your website's live copy against your canonical messaging and positioning documents. It catches contradictions, omissions, tone shifts, and diluted value propositions — the kind of drift that word-level diffing can't see.
+msgdrift compares a website's live copy against the positioning document that was supposed to govern it, and reports where the copy contradicts, dilutes, or omits the message. It reads for meaning, not for matching words: a page can use none of your vocabulary and be on-message, or quote your tagline and undercut it in the next sentence.
 
-## The Problem
+Live at **[msgdrift.com](https://msgdrift.com)**. Free, no login, every report gets a permanent share link.
 
-Marketing websites evolve through dozens of hands — product launches, design refreshes, A/B tests, blog posts, new hires writing copy. Over time, the live site drifts from the positioning your team carefully defined. Pages start contradicting each other. Key value props get diluted. The tone shifts without anyone noticing.
+## What a report contains
 
-By the time someone spots it, the drift is everywhere.
+- An overall alignment score (0 to 100), importance-weighted across pages: high 3x, medium 2x, low 1x.
+- An executive summary that names the worst drift patterns and the one fix to make first.
+- Per page: a score, a 2 to 3 sentence summary, and findings. Each finding pairs the page excerpt with the source excerpt it drifts from, a category (contradiction, omission, tone, dilution, audience-mismatch, claim-drift, framing, stale-messaging), a severity, and a plain explanation of the business impact.
+- Markdown and JSON export. Report pages carry an Open Graph image with the score, so links preview well in Slack and LinkedIn.
 
-## What msgdrift Does
-
-1. **Reads your source-of-truth documents** — messaging guides, positioning docs, brand guidelines
-2. **Fetches your website pages** — homepage, pricing, about, landing pages
-3. **Analyzes semantic alignment** — using Claude to reason about meaning, not just match keywords
-4. **Produces a drift report** — with severity levels, specific excerpts, and an overall alignment score
-
-## Quick Start
-
-```bash
-# Install
-uv add msgdrift
-
-# Create a config file (see examples/msgdrift.example.toml)
-cp examples/msgdrift.example.toml msgdrift.toml
-
-# Add your positioning document
-# (see examples/positioning.example.md for a template)
-
-# Set your Anthropic API key
-export ANTHROPIC_API_KEY=your-key-here
-
-# Run the analysis
-msgdrift analyze
-```
-
-## Configuration
-
-Create a `msgdrift.toml` file in your project root:
-
-```toml
-model = "claude-sonnet-4-20250514"
-max_concurrent_requests = 2
-request_delay_seconds = 1.0
-
-[[source_documents]]
-path = "positioning.md"
-
-[[pages]]
-url = "https://yoursite.com"
-importance = "high"
-label = "Homepage"
-
-[[pages]]
-url = "https://yoursite.com/pricing"
-importance = "high"
-label = "Pricing"
-
-[[pages]]
-url = "https://yoursite.com/about"
-importance = "medium"
-label = "About"
-```
-
-### Configuration Options
-
-| Field | Description | Default |
-|-------|-------------|---------|
-| `model` | Anthropic model ID | `claude-sonnet-4-20250514` |
-| `max_concurrent_requests` | Max parallel page fetches | `2` |
-| `request_delay_seconds` | Delay between fetch batches | `1.0` |
-
-### Page Importance
-
-Pages are weighted by importance when computing the overall alignment score:
-
-- **high** (weight 3x) — Homepage, pricing, primary landing pages
-- **medium** (weight 2x) — About, features, documentation
-- **low** (weight 1x) — Blog posts, changelog, secondary pages
-
-## Drift Severity Levels
+See a full example at [msgdrift.com/example](https://msgdrift.com/example).
 
 | Severity | Meaning |
-|----------|---------|
-| **Critical** | Direct contradiction of positioning or wrong audience targeting |
-| **Major** | Key value propositions missing, diluted, or misframed |
-| **Minor** | Tone inconsistencies, stale phrasing, secondary messaging gaps |
-| **Info** | Not necessarily wrong, but worth a human review |
+|---|---|
+| Critical | Direct contradiction of positioning, or copy aimed at a buyer you say you do not serve |
+| Major | Key value proposition missing, diluted, or misframed |
+| Minor | Tone inconsistency, stale phrasing, secondary messaging gap |
+| Info | Not necessarily wrong, worth a human look |
 
-## CLI Usage
+## How it works
 
-```bash
-# Run analysis with default config (msgdrift.toml)
-msgdrift analyze
+1. **Source document.** You paste a positioning doc, messaging guide, or strategy memo (200 to 20,000 characters). It is used for the scan and stored only inside the resulting report.
+2. **Page discovery.** You enter a domain. The crawler fetches the homepage, collects internal links, and ranks likely messaging pages (pricing, product, solutions, about, customers) with a weight for each. You edit the list, up to 6 pages.
+3. **Crawl.** Each page is fetched once with a plain HTTP request. Scripts, styles, navigation, footers, cookie banners, and similar chrome are stripped; the copy a reader sees is kept, capped at 15,000 characters per page. Private, loopback, and link-local addresses are refused, including after redirects.
+4. **Analysis.** Each page is sent to Claude with the source document and a prompt that defines drift versus acceptable adaptation. The model returns structured output that is validated against a schema before anything renders.
+5. **Summary and report.** A second prompt writes the executive summary. The report is stored under an unguessable ID and streamed back to the browser as it happens.
 
-# Use a specific config file
-msgdrift analyze --config path/to/config.toml
+## Repository layout
 
-# Export report as JSON
-msgdrift analyze --output report.json
-
-# Verbose logging
-msgdrift analyze --verbose
-
-# Validate config without running analysis
-msgdrift validate
-msgdrift validate path/to/config.toml
+```
+src/
+  app/                 Next.js App Router: landing, /scan, /r/[id], /example, API routes, OG images
+  components/          Report view, score ring, scan form, severity badges
+  lib/engine/          Prompts, schema, crawler, discovery, scoring, scan orchestration, markdown export
+  lib/storage/         Report persistence (Vercel Blob, local filesystem fallback)
+  lib/ratelimit.ts     Per-IP and global scan limits (Upstash Redis, in-memory fallback)
+  data/                Sample positioning doc and the example report
+cli/                   The original Python CLI (uv, Click, Pydantic). Same prompts, same scoring.
+docs/PRD.md            Product requirements and done criteria for the web app
 ```
 
-## Development
+## Running locally
+
+Requirements: Node 22 or later, pnpm.
 
 ```bash
-# Clone and install
-git clone https://github.com/wpsands/msgdrift.git
-cd msgdrift
+pnpm install
+cp .env.example .env.local   # then set AI_GATEWAY_API_KEY
+pnpm dev
+```
+
+Without a Blob store or Redis configured, reports are written to `.msgdrift-data/` and rate limits are kept in memory, so the full flow works on a laptop.
+
+```bash
+pnpm test        # vitest unit tests (crawler, scoring, URL safety, markdown, discovery)
+pnpm typecheck
+pnpm lint
+pnpm build
+```
+
+### Environment variables
+
+| Variable | Purpose |
+|---|---|
+| `AI_GATEWAY_API_KEY` | Vercel AI Gateway key for local development. On Vercel, OIDC is used automatically. |
+| `SCAN_MODEL` | Model ID in `provider/model` form. Default `anthropic/claude-sonnet-5.5`. |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token for report storage. Optional locally. |
+| `BLOB_ACCESS` | `public` (default) or `private`, matching how the store was created. |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Durable rate limits. Optional locally. |
+| `SCAN_LIMIT_IP_HOURLY`, `SCAN_LIMIT_IP_DAILY`, `SCAN_LIMIT_GLOBAL_DAILY` | Defaults 3, 10, 200. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical origin for share links and metadata. |
+
+## The CLI
+
+The original tool lives in [`cli/`](./cli) and still works for unlimited local runs with your own Anthropic key:
+
+```bash
+cd cli
 uv sync
-
-# Run tests
-uv run pytest -v
-
-# Lint and format
-uv run ruff check src/ tests/
-uv run ruff format --check src/ tests/
-
-# Type checking
-uv run pyright src/
+cp examples/msgdrift.example.toml msgdrift.toml
+export ANTHROPIC_API_KEY=...
+uv run msgdrift analyze
 ```
 
-## How It Works
+## Design notes
 
-msgdrift doesn't do keyword matching. It uses Claude to perform semantic analysis — understanding that "deploy in seconds" and "ship code instantly" mean the same thing, while "enterprise-grade solution" and "built for mid-market teams" are a positioning contradiction.
+- **Semantic, not lexical.** The prompt tells the model what counts as drift and what is normal adaptation. Findings must quote both sides so a reader can disagree with the model.
+- **Structured output as the spine.** Every model response is validated with zod before it touches the report. A malformed response degrades to a scored page with an explanation, never a crash.
+- **Anonymous by default, bounded by design.** No accounts. Scans are limited per IP and globally, page count and text are capped, and only public hosts are fetched.
+- **One engine, two surfaces.** The TypeScript engine mirrors the Python CLI's prompts and scoring so reports are comparable.
 
-The analysis pipeline:
+## Roadmap
 
-1. **Load** — Reads your positioning and messaging documents
-2. **Fetch** — Downloads target web pages with polite rate limiting
-3. **Extract** — Strips navigation, footers, and UI chrome to isolate page content
-4. **Analyze** — Sends each page + source docs to Claude for semantic comparison
-5. **Report** — Aggregates findings into a weighted drift report with an executive summary
+Scheduled re-scans to track drift over time, saved history behind an account, PDF export, and a GitHub Action that fails a docs build when positioning and site diverge. Open an issue if one of these would change how you work.
 
-## License
+## Author
 
-MIT
+Built by [Page Sands](https://pagesands.com), founder of [SandsDX](https://sandsdx.com), a fractional GTM practice for B2B SaaS. MIT licensed.
