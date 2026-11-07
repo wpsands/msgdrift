@@ -43,7 +43,7 @@ class UpstashLimiter implements Limiter {
     if (!limiter) {
       limiter = Promise.resolve(
         new Ratelimit({
-          redis: Redis.fromEnv(),
+          redis: new Redis({ url: redisUrl()!, token: redisToken()! }),
           limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
           prefix: "msgdrift",
         }),
@@ -55,12 +55,19 @@ class UpstashLimiter implements Limiter {
   }
 }
 
+/** The Vercel Marketplace install names these KV_*; a direct Upstash setup names them UPSTASH_*. */
+function redisUrl(): string | undefined {
+  return process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+}
+function redisToken(): string | undefined {
+  return process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+}
+
 let limiter: Limiter | null = null;
 
 export function getLimiter(): Limiter {
   if (limiter) return limiter;
-  const hasUpstash = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-  limiter = hasUpstash ? new UpstashLimiter() : new MemoryLimiter();
+  limiter = redisUrl() && redisToken() ? new UpstashLimiter() : new MemoryLimiter();
   return limiter;
 }
 
