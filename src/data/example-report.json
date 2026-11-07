@@ -1,0 +1,103 @@
+{
+  "id": "example",
+  "version": 1,
+  "createdAt": "2026-11-06T18:40:12.000Z",
+  "site": "harbor.example",
+  "sourceLabel": "harbor-positioning.md",
+  "sourceChars": 2142,
+  "model": "anthropic/claude-sonnet-5.5",
+  "overallScore": 63.5,
+  "executiveSummary": "Harbor's homepage holds the mid-market forecasting position reasonably well, but the pricing and about pages have drifted toward a conversation-intelligence pitch aimed at small teams. The pricing page's Starter tier for 'teams of 5+' directly contradicts the stated floor of 20 reps and invites the SMB buyer the company says it does not serve. The about page leads with 'AI-powered' and hustle language that the tone guide rules out, and none of the three pages uses the 4.2% forecast variance or the 31-day deployment proof. Fix the pricing page first: remove or re-gate the Starter tier and reframe the tiers around forecast accountability rather than call volume.",
+  "counts": { "critical": 1, "major": 3, "minor": 2, "info": 1 },
+  "durationMs": 48213,
+  "pages": [
+    {
+      "url": "https://harbor.example/",
+      "label": "Homepage",
+      "title": "Harbor | Revenue intelligence for mid-market sales teams",
+      "importance": "high",
+      "alignmentScore": 78,
+      "summary": "The homepage leads with forecast accuracy for mid-market teams and names the CFO as a stakeholder, which matches the positioning. It under-uses proof: the hero claims 'forecasts your board will trust' without the 4.2% variance figure or any customer name, and the second section slides into generic call-recording language.",
+      "fetchStatus": 200,
+      "error": null,
+      "charsAnalyzed": 4210,
+      "findings": [
+        {
+          "severity": "major",
+          "category": "omission",
+          "pageExcerpt": "Forecasts your board will trust. Harbor connects your pipeline to the conversations behind it.",
+          "sourceExcerpt": "Customers report forecast variance under 5% within two quarters. Median forecast variance across customers: 4.2% (H1 2026 cohort).",
+          "explanation": "The hero makes the right claim but without the number that makes it credible to a CFO. The positioning guide requires every claim to carry a number or a named customer. A CRO comparing Harbor to Clari sees an unsupported promise where a 4.2% figure would end the comparison."
+        },
+        {
+          "severity": "minor",
+          "category": "dilution",
+          "pageExcerpt": "Record, transcribe, and analyze every customer conversation automatically.",
+          "sourceExcerpt": "Harbor is not a conversation intelligence tool that happens to forecast. Forecasting is the product. Call recording serves the forecast.",
+          "explanation": "This section describes call recording as a standalone feature, which is the framing the guide explicitly avoids. It makes Harbor read like a Gong alternative rather than a forecasting platform. Reframe the section around what the recordings do for the forecast."
+        },
+        {
+          "severity": "info",
+          "category": "framing",
+          "pageExcerpt": "Trusted by revenue teams everywhere",
+          "sourceExcerpt": "140 mid-market customers, including Pennant Software, Tollgate, and Kestrel Health.",
+          "explanation": "'Everywhere' is a vague claim where the guide supplies a specific count and three named customers. Not wrong, but it leaves the strongest available proof unused."
+        }
+      ]
+    },
+    {
+      "url": "https://harbor.example/pricing",
+      "label": "Pricing",
+      "title": "Pricing | Harbor",
+      "importance": "high",
+      "alignmentScore": 44,
+      "summary": "The pricing page targets the wrong buyer. A Starter tier for teams of five and a tier ladder based on recorded call hours position Harbor as a per-seat call recording tool for small teams, which contradicts both the 20-rep floor and the forecasting-first product definition.",
+      "fetchStatus": 200,
+      "error": null,
+      "charsAnalyzed": 2870,
+      "findings": [
+        {
+          "severity": "critical",
+          "category": "audience-mismatch",
+          "pageExcerpt": "Starter: perfect for growing teams of 5+ who want to get started with conversation intelligence.",
+          "sourceExcerpt": "We do not sell to teams under 20 reps. We do not sell to SMB or self-serve motions.",
+          "explanation": "The Starter tier invites exactly the buyer the company says it does not serve, and describes the product as conversation intelligence. A mid-market CRO reading this will file Harbor with SMB tools, and the SMB leads it generates will not close. This is the single largest source of drift across the scanned pages."
+        },
+        {
+          "severity": "major",
+          "category": "framing",
+          "pageExcerpt": "Plans scale with your recorded call hours: 500 hours, 2,000 hours, or unlimited.",
+          "sourceExcerpt": "Forecasting is the product. Call recording serves the forecast.",
+          "explanation": "Pricing on call hours tells buyers the unit of value is recording. The positioning says the unit of value is a defensible forecast. The tier logic should track pipeline under management or reps forecasting, with call recording included as the evidence layer."
+        },
+        {
+          "severity": "minor",
+          "category": "tone",
+          "pageExcerpt": "Crush your number this quarter!",
+          "sourceExcerpt": "No exclamation points. No hustle language. We write like a trusted finance partner, not a motivational sales coach.",
+          "explanation": "The call to action uses the hustle register the tone guide rules out, on the page a CFO is most likely to read during procurement."
+        }
+      ]
+    },
+    {
+      "url": "https://harbor.example/about",
+      "label": "About",
+      "title": "About Harbor",
+      "importance": "medium",
+      "alignmentScore": 58,
+      "summary": "The about page tells a founder story centered on AI rather than on forecast accountability, and omits the CFO entirely. It is on-audience for sales leaders but presents Harbor as an AI company first.",
+      "fetchStatus": 200,
+      "error": null,
+      "charsAnalyzed": 1960,
+      "findings": [
+        {
+          "severity": "major",
+          "category": "contradiction",
+          "pageExcerpt": "Harbor is the AI-powered revenue platform built to supercharge every sales conversation.",
+          "sourceExcerpt": "We avoid \"AI-powered\" as a headline claim. AI is how it works, not why customers buy.",
+          "explanation": "The company's own guide bans 'AI-powered' as a headline, and the page leads with it. Combined with 'supercharge every sales conversation', the sentence repositions Harbor as a conversation tool with an AI label, the two things the guide works hardest to avoid."
+        }
+      ]
+    }
+  ]
+}
