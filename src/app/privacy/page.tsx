@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "What msgdrift does with the document you paste, the pages it reads, and the report it produces.",
 };
 
-const UPDATED = "November 6, 2026";
+const UPDATED = "November 8, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -70,9 +70,26 @@ export default function PrivacyPage() {
       <Section title="Rate limits and addresses">
         <p>
           Scans are limited per visitor so the shared model budget lasts. To count them, your IP address is combined with a
-          secret and hashed, and the hash is kept for at most 24 hours. The address itself is not stored. Beyond the
-          hosting platform&apos;s standard request logs, which we do not inspect, no other information about you is collected.
-          There are no analytics scripts, no cookies, and no accounts.
+          secret and hashed, and the hash is kept for at most 24 hours. The address itself is not stored. There are no
+          cookies and no accounts.
+        </p>
+      </Section>
+
+      <Section title="Usage analytics">
+        <p>
+          msgdrift uses PostHog to count page views and a short list of product events: a scan started, a scan finished
+          with its page count, score band, and duration, a scan that failed, a sample loaded, a report link copied, a report
+          downloaded, a report deleted. These events carry counts and categories only. They never include your document, the
+          site or page URLs you scan, the report text, or a report id; report ids are removed from page URLs in the browser
+          before anything is sent.
+        </p>
+        <p>
+          PostHog runs in cookieless mode: no cookies, no local storage, no session recording, no click capture, no surveys.
+          Visitors are counted with a daily rotating hash rather than a persistent identifier, and the browser&apos;s Do Not
+          Track setting is honored. The configuration is in{" "}
+          <a href="https://github.com/wpsands/msgdrift/blob/main/src/instrumentation-client.ts" className="link" target="_blank" rel="noopener noreferrer">instrumentation-client.ts</a>{" "}
+          and the event list is in{" "}
+          <a href="https://github.com/wpsands/msgdrift/blob/main/src/lib/analytics.ts" className="link" target="_blank" rel="noopener noreferrer">analytics.ts</a>.
         </p>
       </Section>
 

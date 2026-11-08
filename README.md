@@ -73,6 +73,7 @@ pnpm build
 | `BLOB_ACCESS` | `public` (default) or `private`, matching how the store was created. |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Durable rate limits. Optional locally. |
 | `SCAN_LIMIT_IP_HOURLY`, `SCAN_LIMIT_IP_DAILY`, `SCAN_LIMIT_GLOBAL_DAILY` | Defaults 3, 10, 200. |
+| `NEXT_PUBLIC_POSTHOG_KEY` (or `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`), `NEXT_PUBLIC_POSTHOG_UI_HOST` | Optional. PostHog project key for cookieless usage analytics, proxied through `/ingest`. Unset means no analytics. See `src/instrumentation-client.ts`. |
 | `RATE_LIMIT_SALT` | Secret mixed into the visitor hash used for rate-limit keys. Addresses are never stored. |
 | `SCAN_ZDR` | Zero data retention on the gateway provider path. Default on; `0` disables. |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin for share links and metadata. |
