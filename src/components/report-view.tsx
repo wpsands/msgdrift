@@ -7,7 +7,22 @@ import { ShareBar } from "./share-bar";
 
 const SEVERITY_ORDER: Record<Severity, number> = { critical: 0, major: 1, minor: 2, info: 3 };
 
-export function ReportView({ report, shareUrl, example = false }: { report: DriftReport; shareUrl: string; example?: boolean }) {
+export function ReportView({
+  report,
+  shareUrl,
+  example = false,
+  exampleNote,
+  downloadBase,
+}: {
+  report: DriftReport;
+  shareUrl: string;
+  /** Hides owner actions and marks the report as a demonstration. */
+  example?: boolean;
+  /** Short note shown beside the "Drift report" label, for example reports. */
+  exampleNote?: string;
+  /** Where the markdown and JSON downloads come from. Defaults to the report API. */
+  downloadBase?: string;
+}) {
   const scanned = new Date(report.createdAt);
   const total = SEVERITIES.reduce((n, s) => n + report.counts[s], 0);
   const sortedPages = [...report.pages].sort((a, b) => a.alignmentScore - b.alignmentScore);
@@ -18,7 +33,7 @@ export function ReportView({ report, shareUrl, example = false }: { report: Drif
         <div className="col-span-12 lg:col-span-7">
           <p className="label">
             Drift report
-            {example && <span className="ml-3 normal-case tracking-normal text-blue">Example. Fictional company, real analysis.</span>}
+            {exampleNote && <span className="ml-3 normal-case tracking-normal text-blue">{exampleNote}</span>}
           </p>
           <h1 className="h-display mt-4">{report.site}</h1>
           <p className="mt-5 text-[15px] text-ink-2">
@@ -27,7 +42,7 @@ export function ReportView({ report, shareUrl, example = false }: { report: Drif
             {total} finding{total === 1 ? "" : "s"} in {Math.round(report.durationMs / 1000)} seconds.
           </p>
           <div className="mt-8">
-            <ShareBar reportId={report.id} shareUrl={shareUrl} example={example} />
+            <ShareBar reportId={report.id} shareUrl={shareUrl} downloadBase={downloadBase} />
           </div>
         </div>
         <div className="col-span-12 lg:col-span-4 lg:col-start-9">
@@ -59,7 +74,7 @@ export function ReportView({ report, shareUrl, example = false }: { report: Drif
                 {p.findings.length} finding{p.findings.length === 1 ? "" : "s"}
               </span>
               <span className="text-right">
-                <ScoreInline score={p.alignmentScore} />
+                {p.error ? <span className="text-sm text-muted">Not read</span> : <ScoreInline score={p.alignmentScore} />}
               </span>
             </li>
           ))}
@@ -73,9 +88,16 @@ export function ReportView({ report, shareUrl, example = false }: { report: Drif
       </div>
 
       <footer className="rule mt-20 pt-6 text-sm text-muted">
-        Read with <span className="font-mono">{report.model}</span>. Overall score weights pages by importance: high 3x, medium 2x, low 1x. Scores are a
-        model&apos;s judgment of alignment. Read them as a ranking across pages rather than a grade. This report keeps only the
-        sentences it quotes; the full document was not saved. <Link href="/privacy" className="link">Privacy</Link>.
+        <p>
+          Read with <span className="font-mono">{report.model}</span>. Overall score weights pages by importance: high 3x, medium 2x,
+          low 1x, and leaves out pages that could not be read. Scores are a model&apos;s judgment of alignment. Read them as a ranking
+          across pages rather than a grade. This report keeps only the sentences it quotes; the full document was not saved.{" "}
+          <Link href="/method" className="link">Method</Link>. <Link href="/privacy" className="link">Privacy</Link>.
+        </p>
+        <p className="mt-3">
+          msgdrift is built by{" "}
+          <a href="https://sandsdx.com" className="link" target="_blank" rel="noopener noreferrer">Page Sands, SandsDX</a>.
+        </p>
       </footer>
       {!example && <OwnerActions reportId={report.id} />}
     </article>
@@ -96,13 +118,20 @@ function PageSection({ page, index }: { page: PageAnalysis; index: number }) {
           <a href={page.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block max-w-full truncate font-mono text-xs text-muted hover:text-blue">
             {page.url}
           </a>
-          <p className="mt-6 text-[17px] leading-relaxed text-ink-2">{page.summary}</p>
-          {page.error && !page.findings.length && (
-            <p className="mt-4 border-l-2 border-blue pl-4 text-sm text-ink-2">This page could not be read: {page.error}</p>
+          {page.error ? (
+            <p className="mt-6 border-l-2 border-blue pl-4 text-[15px] leading-relaxed text-ink-2">
+              This page was not read and is left out of the overall score. {page.error}
+            </p>
+          ) : (
+            <p className="mt-6 text-[17px] leading-relaxed text-ink-2">{page.summary}</p>
           )}
         </div>
         <div className="col-span-12 md:col-span-3">
-          <ScoreRuler score={page.alignmentScore} compact />
+          {page.error ? (
+            <p className="text-sm text-muted">Not read, not scored.</p>
+          ) : (
+            <ScoreRuler score={page.alignmentScore} compact />
+          )}
         </div>
       </div>
 

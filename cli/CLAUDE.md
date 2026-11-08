@@ -132,3 +132,9 @@ findings by page importance when scoring overall drift.
   before extracting text. Test this against real-world HTML.
 - **Config validation**: Fail early with clear errors. "File not found:
   positioning.md" is better than a traceback three function calls deep.
+- **Parity with the web app** (`src/lib/engine/`): the web crawler strips page
+  chrome by whole class/id tokens, not substrings (a substring match on "nav"
+  removed every `text-navy-800` element on databricks.com), and the web scorer
+  leaves pages that could not be read out of the overall score instead of
+  counting them as 0. This CLI still does both the old way. Port both when
+  touching `crawler.py` or `models.py`, with tests.

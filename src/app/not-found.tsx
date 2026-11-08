@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Not found",
+  description: "There is nothing at this address.",
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (

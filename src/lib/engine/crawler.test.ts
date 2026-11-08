@@ -49,6 +49,29 @@ describe("extractPage", () => {
     expect(page.links.some((l) => l.includes("twitter.com"))).toBe(false);
   });
 
+  it("strips chrome by whole class tokens, not substrings", () => {
+    const html = `<html><body><main>
+      <section class="hero-banner text-navy-800"><h1>Welcome to the canvas</h1></section>
+      <div class="pad-4 thread-list"><p>Padded copy</p></div>
+      <div class="mainMenu"><a href="/x">Menu item</a></div>
+      <div id="cookieConsent"><p>Accept cookies</p></div>
+      <div class="ad-slot"><p>Sponsored</p></div>
+      <nav class="breadcrumb"><a href="/">Home</a></nav>
+    </main></body></html>`;
+    const text = extractPage(html).text;
+    expect(text).toContain("Welcome to the canvas");
+    expect(text).toContain("Padded copy");
+    expect(text).not.toContain("Menu item");
+    expect(text).not.toContain("Accept cookies");
+    expect(text).not.toContain("Sponsored");
+    expect(text).not.toContain("Home");
+  });
+
+  it("never strips a wrapper that contains main", () => {
+    const html = `<html><body><div class="site-nav-wrapper"><main><p>Real copy</p></main></div></body></html>`;
+    expect(extractPage(html).text).toBe("Real copy");
+  });
+
   it("falls back to body when there is no main", () => {
     const simple = extractPage("<html><body><p>Hello</p><p>World</p></body></html>");
     expect(simple.text).toBe("Hello\nWorld");

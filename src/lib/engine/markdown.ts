@@ -5,7 +5,7 @@ export function reportToMarkdown(report: DriftReport, shareUrl?: string): string
   const lines: string[] = [];
   lines.push(`# msgdrift report: ${report.site}`);
   lines.push("");
-  lines.push(`Overall alignment: **${Math.round(report.overallScore)}/100**`);
+  lines.push(`Overall alignment: **${Math.round(report.overallScore)}/100** (pages that could not be read are left out)`);
   lines.push(`Findings: ${report.counts.critical} critical, ${report.counts.major} major, ${report.counts.minor} minor, ${report.counts.info} info`);
   lines.push(`Scanned ${report.pages.length} page${report.pages.length === 1 ? "" : "s"} on ${new Date(report.createdAt).toUTCString()} with ${report.model}.`);
   if (shareUrl) lines.push(`Share link: ${shareUrl}`);
@@ -19,7 +19,8 @@ export function reportToMarkdown(report: DriftReport, shareUrl?: string): string
   lines.push("| Page | Importance | Score | Findings |");
   lines.push("|---|---|---|---|");
   for (const p of report.pages) {
-    lines.push(`| [${escapePipes(p.label || p.url)}](${p.url}) | ${p.importance} | ${Math.round(p.alignmentScore)} | ${p.findings.length} |`);
+    const score = p.error ? "not read" : String(Math.round(p.alignmentScore));
+    lines.push(`| [${escapePipes(p.label || p.url)}](${p.url}) | ${p.importance} | ${score} | ${p.findings.length} |`);
   }
   lines.push("");
   for (const p of report.pages) lines.push(...pageSection(p));
@@ -33,12 +34,12 @@ function pageSection(p: PageAnalysis): string[] {
   out.push(`### ${p.label || p.url}`);
   out.push("");
   out.push(`${p.url}  `);
-  out.push(`Importance: ${p.importance} · Score: ${Math.round(p.alignmentScore)}/100`);
+  out.push(`Importance: ${p.importance} · Score: ${p.error ? "not read" : `${Math.round(p.alignmentScore)}/100`}`);
   out.push("");
-  out.push(p.summary);
+  out.push(p.error ? `This page was not read and is left out of the overall score. ${p.error}` : p.summary);
   out.push("");
   if (!p.findings.length) {
-    out.push("_No drift findings._");
+    out.push(p.error ? "_Not read._" : "_No drift findings._");
     out.push("");
     return out;
   }

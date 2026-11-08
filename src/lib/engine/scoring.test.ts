@@ -25,6 +25,20 @@ describe("computeOverallScore", () => {
     expect(score).toBe(70);
   });
 
+  it("leaves pages that could not be read out of the roll-up", () => {
+    const score = computeOverallScore([
+      { alignmentScore: 80, importance: "high" },
+      { alignmentScore: 0, importance: "high", error: "Page had no readable text", charsAnalyzed: 0 },
+      { alignmentScore: 60, importance: "low" },
+    ]);
+    // (80*3 + 60*1) / 4 = 75; counting the unread page as 0 would give 42.9
+    expect(score).toBe(75);
+  });
+
+  it("returns 0 when no page could be read", () => {
+    expect(computeOverallScore([{ alignmentScore: 0, importance: "high", error: "timeout", charsAnalyzed: 0 }])).toBe(0);
+  });
+
   it("rounds to one decimal", () => {
     const score = computeOverallScore([
       { alignmentScore: 85, importance: "high" },

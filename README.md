@@ -1,6 +1,6 @@
 # msgdrift
 
-**Find where your website stopped saying what you meant.**
+**Find the pages still selling the old story.**
 
 msgdrift compares a website's live copy against the positioning document that was supposed to govern it, and reports where the copy contradicts, dilutes, or omits the message. It reads for meaning, not for matching words: a page can use none of your vocabulary and be on-message, or quote your tagline and undercut it in the next sentence.
 
@@ -13,7 +13,7 @@ Live at **[msgdrift.com](https://msgdrift.com)**. Free, no login, every report g
 - Per page: a score, a 2 to 3 sentence summary, and findings. Each finding pairs the page excerpt with the source excerpt it drifts from, a category (contradiction, omission, tone, dilution, audience-mismatch, claim-drift, framing, stale-messaging), a severity, and a plain explanation of the business impact.
 - Markdown and JSON export. Report pages carry an Open Graph image with the score, so links preview well in Slack and LinkedIn.
 
-See a full example at [msgdrift.com/example](https://msgdrift.com/example).
+See real reports at [msgdrift.com/example](https://msgdrift.com/example): HubSpot and Databricks, each read against a positioning document assembled from the company's own public statements. How the tool reads, judges, and scores is on [msgdrift.com/method](https://msgdrift.com/method).
 
 | Severity | Meaning |
 |---|---|
@@ -39,7 +39,7 @@ src/
   lib/engine/          Prompts, schema, crawler, discovery, scoring, scan orchestration, markdown export
   lib/storage/         Report persistence (Vercel Blob, local filesystem fallback)
   lib/ratelimit.ts     Per-IP and global scan limits (Upstash Redis, in-memory fallback)
-  data/                Sample positioning doc and the example report
+  data/                Sample positioning doc and the two example reports
 cli/                   The original Python CLI (uv, Click, Pydantic). Same prompts, same scoring.
 docs/PRD.md            Product requirements and done criteria for the web app
 ```

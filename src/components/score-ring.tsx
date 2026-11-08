@@ -28,11 +28,11 @@ export function ScoreRuler({ score, label = "Alignment", compact = false }: { sc
         <span className="ruler-mark" style={{ left: `${pct}%` }} />
       </div>
       {!compact && (
-        <figcaption className="relative mt-2 h-5 font-mono text-xs text-muted">
-          <span className="absolute left-0">0 off-message</span>
-          <span className="absolute -translate-x-1/2" style={{ left: "60%" }}>60 drifting</span>
-          <span className="absolute -translate-x-1/2" style={{ left: "80%" }}>80 aligned</span>
-          <span className="absolute right-0">100</span>
+        <figcaption className="mt-2 flex flex-wrap justify-between gap-x-4 font-mono text-xs text-muted">
+          <span>0 off-message</span>
+          <span>60 drifting</span>
+          <span>80 aligned</span>
+          <span>100</span>
         </figcaption>
       )}
     </figure>

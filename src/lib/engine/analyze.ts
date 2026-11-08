@@ -6,6 +6,7 @@ import {
   pageAnalysisOutputSchema,
   type DriftReport,
   type PageAnalysis,
+  type PageAnalysisOutput,
   type PageConfig,
   type ScanEvent,
   type ScanRequest,
@@ -117,8 +118,12 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
     error: content.error,
   };
 
-  if (content.error || !content.text.trim()) {
-    return { ...base, findings: [], summary: `Could not analyze: ${content.error ?? "empty page content"}`, alignmentScore: 0, charsAnalyzed: 0 };
+  const readable = content.text.trim().length;
+  if (content.error || readable < LIMITS.minPageChars) {
+    const error =
+      content.error ??
+      `Only ${readable} characters of readable text, below the ${LIMITS.minPageChars} needed to judge a page. It may render in JavaScript.`;
+    return { ...base, error, findings: [], summary: `Not read: ${error}`, alignmentScore: 0, charsAnalyzed: 0 };
   }
 
   const pageText = content.text.slice(0, LIMITS.maxPageChars);
@@ -131,16 +136,26 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
   });
 
   try {
-    const { output } = await generateText({
-      model,
-      system: SYSTEM_PROMPT,
-      prompt,
-      output: Output.object({ schema: pageAnalysisOutputSchema }),
-      temperature: 0.2,
-      maxOutputTokens: 4096,
-      abortSignal: signal,
-      providerOptions: gatewayOptions(),
-    });
+    // A long page can produce eight findings that overrun the first token budget.
+    // When the model is cut off, the parsed object is unreliable, so retry once
+    // with more room rather than keep a truncated analysis.
+    let output: PageAnalysisOutput | undefined;
+    for (const maxOutputTokens of [4096, 8192]) {
+      const result = await generateText({
+        model,
+        system: SYSTEM_PROMPT,
+        prompt,
+        output: Output.object({ schema: pageAnalysisOutputSchema }),
+        temperature: 0.2,
+        maxOutputTokens,
+        abortSignal: signal,
+        providerOptions: gatewayOptions(),
+      });
+      if (result.finishReason === "length" || !result.output.summary.trim()) continue;
+      output = result.output;
+      break;
+    }
+    if (!output) throw new Error("The model's answer was cut off before it finished, twice.");
     const findings = output.findings.slice(0, 12).map((f) => ({
       severity: f.severity,
       category: normalizeCategory(f.category),
