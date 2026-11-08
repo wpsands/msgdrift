@@ -33,6 +33,7 @@ export const LIMITS = {
   maxPages: 6,
   maxSourceChars: 20_000,
   maxPageChars: 15_000,
+  minPageChars: 200,
   minSourceChars: 200,
   fetchTimeoutMs: 20_000,
 } as const;

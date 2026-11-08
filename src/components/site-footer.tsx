@@ -17,7 +17,8 @@ export function SiteFooter() {
           <dt className="label">Use</dt>
           <dd className="mt-3 flex flex-col gap-2">
             <Link href="/scan" className="hover:text-blue">Scan a site</Link>
-            <Link href="/example" className="hover:text-blue">Example report</Link>
+            <Link href="/example" className="hover:text-blue">Example reports</Link>
+            <Link href="/method" className="hover:text-blue">Method</Link>
             <a href="https://github.com/wpsands/msgdrift" target="_blank" rel="noopener noreferrer" className="hover:text-blue">Source on GitHub</a>
             <a href="https://github.com/wpsands/msgdrift/tree/main/cli" target="_blank" rel="noopener noreferrer" className="hover:text-blue">Command line version</a>
           </dd>

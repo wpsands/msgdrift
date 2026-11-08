@@ -66,7 +66,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         )}
 
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 22, color: OG_COLORS.muted }}>
-          <span>Semantic messaging drift detection</span>
+          <span>Live copy, read against the positioning</span>
           <span>msgdrift.com</span>
         </div>
       </div>

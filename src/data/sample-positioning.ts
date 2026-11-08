@@ -1,4 +1,4 @@
-/** A sample positioning document for a fictional company, used by "Try the sample" and the example report. */
+/** A sample positioning document for a fictional company, loaded by "Try the sample" on the scan form. */
 export const SAMPLE_POSITIONING_LABEL = "harbor-positioning.md";
 
 export const SAMPLE_POSITIONING = `# Harbor: Positioning and Messaging Guide
