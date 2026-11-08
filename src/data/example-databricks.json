@@ -1,0 +1,378 @@
+{
+  "id": "vec8kyws9qct",
+  "version": 1,
+  "createdAt": "2026-11-08T19:44:14.244Z",
+  "site": "databricks.com",
+  "sourceLabel": "databricks-positioning-2026.md",
+  "sourceChars": 2611,
+  "model": "anthropic/claude-sonnet-5.5",
+  "pages": [
+    {
+      "url": "https://www.databricks.com/",
+      "label": "Homepage",
+      "title": "Databricks: Leading Data and AI Platform for Enterprises",
+      "importance": "high",
+      "fetchStatus": 200,
+      "error": null,
+      "findings": [
+        {
+          "severity": "major",
+          "category": "framing",
+          "pageExcerpt": "One database for AI, apps and agents. Lakebase is serverless Postgres for applications that scale",
+          "sourceExcerpt": "Databricks is the data and AI company. Its platform is the Data + AI Platform, \"built on an open lakehouse architecture,\" which \"provides a unified foundation for all data and governance.\"",
+          "explanation": "The hero leads with a single database product, not the unified Data + AI Platform. This narrows the first impression to transactional Postgres for developers and puts the company-level promise (unified data and AI for everyone) in second place. The new generic term \"lakebase\" adds more product vocabulary before visitors have seen the core story, which dilutes the position on the highest-traffic page."
+        },
+        {
+          "severity": "major",
+          "category": "stale-messaging",
+          "pageExcerpt": "JUNE 15–18 / SAN FRANCISCO Secure your spot today! Last chance to register.",
+          "sourceExcerpt": "coverage of CEO Ali Ghodsi's opening keynote at Data + AI Summit, June 15, 2026, San Francisco... (page read November 2026)",
+          "explanation": "The page still carries a \"last chance to register\" banner for a Summit that the source shows has already happened. Other promos on the same page point to November events (Nov 10–12, Nov 11), so the page contradicts itself. A stale urgent CTA at the top of the homepage hurts credibility and sends visitors to a dead end."
+        },
+        {
+          "severity": "minor",
+          "category": "claim-drift",
+          "pageExcerpt": "Over 60% of the Fortune 500 uses Databricks",
+          "sourceExcerpt": "More than 20,000 organizations worldwide, including Block, Comcast, Condé Nast, Rivian, Shell and 70% of the Fortune 500, rely on the Databricks Data + AI Platform.",
+          "explanation": "The page cites 60%, but the company's stated figure is 70%. The stat is technically still true but undersells the claim and looks like an outdated number. The 20,000+ customer figure does match. Named customers such as Block, Comcast and Shell are also absent from this proof block."
+        },
+        {
+          "severity": "minor",
+          "category": "dilution",
+          "pageExcerpt": "What is a data warehouse? A data warehouse is a data management system that stores current and historical data from multiple sources... Data may pass through an operational data store and require data cleansing...",
+          "sourceExcerpt": "Copy that leads with lakehouse or data warehousing as the end in itself... is out of step with the stated position.",
+          "explanation": "This FAQ block is a generic textbook definition of a data warehouse. It does not mention Databricks, AI, agents or the lakehouse. It reads like SEO filler and pulls the page toward the legacy data-warehousing frame Databricks is positioned against. The \"warehouse is still a lakehouse\" section also leans on warehouse cost and TCO language instead of the AI-grounded story."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "Unify your data, analytics and AI. Use it to power agents, apps and natural language insights.",
+          "sourceExcerpt": "founded in 2013 by the original creators of the lakehouse architecture and open source projects Apache Spark, Delta Lake, MLflow and Unity Catalog... 1,200+ global cloud, ISV and consulting partners.",
+          "explanation": "The page mentions \"open\" several times and names Delta Lake once, but never says Databricks was created by the people behind Spark, Delta Lake, MLflow and Unity Catalog. The 1,200+ partner ecosystem is also missing. Both support the trust and openness claims, and the page gives up that differentiation against closed competitors."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "Context Is Just the Beginning. Join us on Nov 11.",
+          "sourceExcerpt": "AI does not have an intelligence problem, it has a context problem... organized the roadmap around four enterprise AI challenges: context, cost, control, and choice.",
+          "explanation": "The 2026 thesis (context, cost, control, choice) appears only as a small event teaser and is never explained in the main body. The pieces are scattered: \"grounded in your data\" appears in the agents section and cost control in Unity Gateway. The page does not tie them into one argument, so the strategic narrative leadership is pushing is not visible to visitors."
+        },
+        {
+          "severity": "minor",
+          "category": "stale-messaging",
+          "pageExcerpt": "Unity Gateway: Govern enterprise AI with unified access, cost control, observability and guardrails.",
+          "sourceExcerpt": "Every major announcement (Genie One, LTAP, Lakehouse//RT, the Unity AI Gateway)",
+          "explanation": "The product is called \"Unity Gateway\" on the page but \"Unity AI Gateway\" in the keynote. Genie is also shown as \"Genie\" and \"Databricks Genie\" rather than the announced Genie One. Naming inconsistencies weaken the link to the AI-governance story and could confuse buyers and search."
+        },
+        {
+          "severity": "info",
+          "category": "audience-mismatch",
+          "pageExcerpt": "Build reliable ETL pipelines for batch and streaming with Lakeflow. Ingest, transform and orchestrate your data at scale with a unified solution.",
+          "sourceExcerpt": "A data and AI company, not a data engineering vendor... Copy that... speaks only to engineers... is out of step.",
+          "explanation": "This block is purely data-engineering copy with no AI or business-user angle. The page as a whole serves both audiences, with Genie and \"Intelligent analytics for all\" covering business users, so this is not a clear violation. It is worth a human check that the engineering-heavy blocks (pipelines, warehouse, Postgres) do not outweigh the natural-language, everyone-in-the-organization story."
+        }
+      ],
+      "summary": "The page is broadly on-message. It uses the current Data + AI Platform name, covers both business and technical audiences, and keeps agents and AI central. The main drift is a hero that leads with the Lakebase database instead of the unified platform, stale event and Fortune 500 messaging, and generic warehouse content that pulls toward the legacy frame. The open-source heritage, partner ecosystem and context/cost/control/choice thesis are underused.",
+      "alignmentScore": 70,
+      "charsAnalyzed": 5897
+    },
+    {
+      "url": "https://www.databricks.com/product/data-intelligence-platform",
+      "label": "Platform",
+      "title": "Databricks Data + AI Platform: Unified Data and AI",
+      "importance": "high",
+      "fetchStatus": 200,
+      "error": null,
+      "findings": [
+        {
+          "severity": "major",
+          "category": "stale-messaging",
+          "pageExcerpt": "It unifies data engineering, data science and machine learning into one collaborative environment built on top of Apache Spark™. ... It's often used for tasks like big data analytics, data lake management",
+          "sourceExcerpt": "A data and AI company, not a data engineering vendor. ... built on an open lakehouse architecture, which provides a unified foundation for all data and governance.",
+          "explanation": "The FAQ definition of the platform reads like older Spark-era boilerplate: data engineering/data science/ML, big data analytics, data lake management. It omits the lakehouse foundation, governance, Genie and agents, and positions Databricks closer to a data engineering vendor. This is the most quotable answer on a high-importance page (and likely to be lifted by AI search), so it undersells the current position."
+        },
+        {
+          "severity": "major",
+          "category": "audience-mismatch",
+          "pageExcerpt": "Because it unifies data engineering, data science and machine learning in one workspace, it suits organizations that want one platform for teams that previously worked across several separate tools.",
+          "sourceExcerpt": "Anyone in an organization can benefit from automation and natural language to discover and use data like experts. ... democratizes insights to everyone in an organization.",
+          "explanation": "The first half of the 'who is it for' answer correctly names business and technical users. The closing rationale, however, reverts to a technical-team consolidation story (engineering, data science, ML). That undercuts the democratization message and leaves the page's explicit audience answer weighted toward technical practitioners."
+        },
+        {
+          "severity": "major",
+          "category": "claim-drift",
+          "pageExcerpt": "Databricks offers the only platform built from the ground up for data and AI together. Unlike legacy tools that bolt AI onto analytics after the fact...",
+          "sourceExcerpt": "Databricks is the data and AI company. Its platform is the Data + AI Platform, built on an open lakehouse architecture",
+          "explanation": "The source supports a unified data-and-AI platform, but not an 'only platform' superlative or the claim it was built 'from the ground up' for data and AI. Databricks began as a Spark/data engineering company and added AI later. The unsupported absolute exposes the company to credibility and legal challenge and is easy for competitors to rebut."
+        },
+        {
+          "severity": "major",
+          "category": "contradiction",
+          "pageExcerpt": "This represents a reversal of the past decade's trend toward specialized tools. The Databricks Data + AI Platform is designed around the thesis that unification is the competitive advantage — one copy of data, one processing engine, one governance model across all clouds",
+          "sourceExcerpt": "AI does not have an intelligence problem, it has a context problem. ... organized the roadmap around four enterprise AI challenges: context, cost, control, and choice.",
+          "explanation": "The FAQ states a different thesis (unification as the competitive advantage) from the 2026 context thesis that the rest of the page uses. 'One processing engine' also sits awkwardly with the open, choice-of-engine message elsewhere. Two competing core arguments on one page dilute the narrative and confuse the primary takeaway."
+        },
+        {
+          "severity": "major",
+          "category": "claim-drift",
+          "pageExcerpt": "Customers in competitive evaluations consistently cite openness as one of their primary deciding factors — and Unity Catalog, as an open governance layer, is cited as a unique capability that competitors haven't matched.",
+          "sourceExcerpt": "Databricks was \"founded in 2013 by the original creators of the lakehouse architecture and open source projects Apache Spark, Delta Lake, MLflow and Unity Catalog.\"",
+          "explanation": "The source grounds openness in the company's open-source origins. The page instead makes unsourced claims about what customers say in competitive evaluations and asserts competitors 'haven't matched' Unity Catalog. These are unverifiable competitive claims that read like internal sales enablement rather than public positioning, and they miss the stronger open-source-creators proof point."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "TRUSTED BY DATA AND AI TEAMS WORLDWIDE ... Databricks is trusted by data and AI teams worldwide who are turning data into analytics, applications and agents.",
+          "sourceExcerpt": "More than 20,000 organizations worldwide, including Block, Comcast, Condé Nast, Rivian, Shell and 70% of the Fortune 500, rely on the Databricks Data + AI Platform.",
+          "explanation": "The page uses generic 'data and AI teams' trust language and does not state the 20,000+ organizations, named customers or Fortune 500 penetration. This drops the strongest social proof and frames the buyer as a team rather than the enterprise, weakening credibility on a high-importance page."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "Databricks lets teams build, evaluate and govern AI agents on one platform ... Unity Catalog manages data and AI assets with consistent permissions, lineage and auditing",
+          "sourceExcerpt": "Databricks was founded in 2013 by the original creators of ... Apache Spark, Delta Lake, MLflow and Unity Catalog. ... 1,200+ global cloud, ISV and consulting partners.",
+          "explanation": "The page never says Databricks was founded by the creators of the open source projects it relies on, and omits the 1,200+ partner ecosystem. Openness is argued only through format and no-lock-in claims, missing the heritage and ecosystem proof points that differentiate the position."
+        },
+        {
+          "severity": "info",
+          "category": "framing",
+          "pageExcerpt": "Ready to become a data + AI company? Take the first steps in your data transformation",
+          "sourceExcerpt": "Databricks is the data and AI company. ... Databricks is on a mission to simplify and democratize data and AI",
+          "explanation": "The closing CTA frames the outcome as 'data transformation', which echoes a data-only story, while the hero leads with the agentic enterprise. It is not a contradiction, but the CTA could carry the AI, context and agents promise more directly. Worth a human review for consistency."
+        }
+      ],
+      "summary": "The top of the page and the capability sections align well with the 2026 thesis: context, control and choice, the Data + AI Platform name, and Genie serving both business and technical users. The FAQ at the bottom drifts, though. It carries older Spark-era data engineering framing, an unsupported 'only platform' claim, a competing unification thesis, and unverified competitive assertions, and it omits proof points such as customer scale and open-source heritage.",
+      "alignmentScore": 66,
+      "charsAnalyzed": 8084
+    },
+    {
+      "url": "https://www.databricks.com/why-databricks",
+      "label": "Why Databricks",
+      "title": "Enterprise AI Platform for Executives | Databricks",
+      "importance": "high",
+      "fetchStatus": 200,
+      "error": null,
+      "findings": [
+        {
+          "severity": "major",
+          "category": "stale-messaging",
+          "pageExcerpt": "A unified view and management interface for all data tables within the Databricks Lakehouse, enhancing data governance and accessibility.",
+          "sourceExcerpt": "The platform name in current use is the Data + AI Platform. Copy that leads with lakehouse or data warehousing as the end in itself... or that uses a superseded platform name is out of step with the stated position.",
+          "explanation": "The case study teaser calls the product the \"Databricks Lakehouse\" and describes a data-table management interface with no AI or agents. This is a superseded name and a data-engineering framing on an executive page about AI. It also signals placeholder or stale content, which weakens credibility with a senior audience."
+        },
+        {
+          "severity": "major",
+          "category": "omission",
+          "pageExcerpt": "Case Studies\nConsequatur aut iure incidunt et accusantium\nSee all case studies\nCase study one",
+          "sourceExcerpt": "More than 20,000 organizations worldwide, including Block, Comcast, Condé Nast, Rivian, Shell and 70% of the Fortune 500, rely on the Databricks Data + AI Platform.",
+          "explanation": "The case study section contains lorem-ipsum filler and a generic \"Case study one\" label instead of named customer proof. On a high-importance executive page, this wastes the main chance to use the stated customer proof points (20,000+ organizations, 70% of the Fortune 500). It reads as unfinished and undermines the trust the page is trying to build."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "Databricks runs on open infrastructure and open data formats, across any cloud, any model and any data.",
+          "sourceExcerpt": "founded in 2013 by the original creators of the lakehouse architecture and open source projects Apache Spark, Delta Lake, MLflow and Unity Catalog.",
+          "explanation": "The page makes the openness argument only as a lock-in answer. It never mentions the open source heritage or that Databricks' founders created Spark, Delta Lake, MLflow and Unity Catalog, which is the credibility behind the openness claim. Executives are left with an assertion rather than the stated proof."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "Ready to put your data to work with AI? We'll help put together a plan built around your data and goals.",
+          "sourceExcerpt": "\"Databricks is the data and AI company.\" ... \"provides a unified foundation for all data and governance.\"",
+          "explanation": "The page never states the core identity (\"the data and AI company\") or the open-lakehouse foundation as a plain-language statement. The unified-foundation idea shows up only inside one FAQ answer. The executive reader gets context, control and choice framing but not who Databricks is."
+        },
+        {
+          "severity": "minor",
+          "category": "audience-mismatch",
+          "pageExcerpt": "Databricks customers have realized more than $100 billion in value from data and AI initiatives, from Mastercard cutting months of engineering work down to 14 days...",
+          "sourceExcerpt": "\"More than 20,000 organizations worldwide, including Block, Comcast, Condé Nast, Rivian, Shell and 70% of the Fortune 500, rely on the Databricks Data + AI Platform.\"",
+          "explanation": "The \"$100 billion in value\" figure does not appear in the stated positioning, and the customers cited (Mastercard, adidas) differ from the named proof points. This is not necessarily wrong, but an unsourced aggregate claim on a high-importance page needs verification. The adidas and Mastercard examples also lean on engineering time and analysis cost rather than executive outcomes."
+        },
+        {
+          "severity": "minor",
+          "category": "framing",
+          "pageExcerpt": "Shift from “tokenmaxxing” to “valuemaxxing”",
+          "sourceExcerpt": "Databricks is on a mission to simplify and democratize data and AI, helping data and AI teams solve the world's toughest problems.",
+          "explanation": "The slang coinage is more casual than the stated mission-driven, enterprise-grade register. It may suit an on-demand event title, but it sits on a page aimed at Fortune 500 executives and could undercut gravitas. Worth a human review for brand tone."
+        },
+        {
+          "severity": "info",
+          "category": "framing",
+          "pageExcerpt": "Context Is Just the Beginning\nMeet your data smart AI coworker",
+          "sourceExcerpt": "AI does not have an intelligence problem, it has a context problem. ... The keynote organized the roadmap around four enterprise AI challenges: context, cost, control, and choice.",
+          "explanation": "The page maps well to the context, cost, control and choice thesis. But the event title \"Context Is Just the Beginning\" and the \"AI coworker\" framing slightly shift the story from context as the answer to context as a starting point. The page also never names the four challenges explicitly. Review whether this is an intended evolution."
+        },
+        {
+          "severity": "info",
+          "category": "omission",
+          "pageExcerpt": "Insights for the executives leading AI transformation\nOur executive blog series covers what leaders need to know — from governance to cost control to scaling agents",
+          "sourceExcerpt": "Anyone in an organization can benefit from automation and natural language to discover and use data like experts. ... democratizes insights to everyone in an organization.",
+          "explanation": "The page is intentionally executive-focused, which is acceptable. But it never mentions the democratization and natural-language access promise (for example Genie) that extends the platform to everyone in the organization. Executives may not see how the platform reaches their business users, not just AI builders."
+        }
+      ],
+      "summary": "The page is strongly aligned with the 2026 thesis: it is organized around context, control (cost and governance) and choice (openness), and consistently uses the Data + AI Platform name. The main drift is unfinished or stale content, namely a lorem-ipsum case study section and a \"Databricks Lakehouse\" data-table teaser. Secondary gaps are missing open-source heritage, the \"data and AI company\" identity, democratization messaging and the stated customer proof points.",
+      "alignmentScore": 72,
+      "charsAnalyzed": 4135
+    },
+    {
+      "url": "https://www.databricks.com/product/artificial-intelligence",
+      "label": "AI",
+      "title": "Databricks AI: build and deploy AI agent systems",
+      "importance": "medium",
+      "fetchStatus": 200,
+      "error": null,
+      "findings": [
+        {
+          "severity": "major",
+          "category": "audience-mismatch",
+          "pageExcerpt": "These examples span financial services, technology and media, showing the platform serves data and AI teams that need accurate, domain-specific applications rather than generic AI outputs.",
+          "sourceExcerpt": "Anyone in an organization can benefit from automation and natural language to discover and use data like experts. ... democratizes insights to everyone in an organization.",
+          "explanation": "The FAQ audience statement narrows the platform to data and AI teams and enterprises building agents. The positioning names business users as a co-equal audience. The page only gestures at nontechnical users through the FactSet example, so the democratization message is lost on a page where business buyers may land."
+        },
+        {
+          "severity": "major",
+          "category": "omission",
+          "pageExcerpt": "Securely connect your data with any AI model to create accurate, domain-specific applications.",
+          "sourceExcerpt": "AI does not have an intelligence problem, it has a context problem. Enterprise AI succeeds when models are grounded in a company's own governed data, and the platform's job is to supply that context.",
+          "explanation": "The page has the ingredients (grounded in your data, governance) but never articulates the 2026 context thesis or the four-challenge frame of context, cost, control and choice. It reads as a generic feature-led AI tooling page, which weakens differentiation and ties to the current keynote narrative."
+        },
+        {
+          "severity": "major",
+          "category": "stale-messaging",
+          "pageExcerpt": "Agent Bricks AI Gateway allows you to manage models like OpenAI GPT-4, Meta Llama 3, Anthropic Claude 3, etc.",
+          "sourceExcerpt": "Every major announcement (Genie One, LTAP, Lakehouse//RT, the Unity AI Gateway) was framed as an answer to one of the four.",
+          "explanation": "The page cites dated model versions, which signals stale content in a fast-moving AI market. It also calls the gateway 'Agent Bricks AI Gateway' in one place, 'AI Gateway' in another and 'Unity Gateway' in the product list, whereas the stated name is Unity AI Gateway. Inconsistent naming confuses buyers and undermines credibility."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "Databricks Notebooks ... Managed MLflow ... Extend open source MLflow, a unified MLOps platform for building better models and generative AI apps",
+          "sourceExcerpt": "founded in 2013 by the original creators of the lakehouse architecture and open source projects Apache Spark, Delta Lake, MLflow and Unity Catalog.",
+          "explanation": "Open source appears only as a product detail on MLflow and in model fine-tuning. The page never claims the creator-of-open-source identity or ties openness to avoiding lock-in. This is a missed differentiator, since the page does argue against being locked into one model."
+        },
+        {
+          "severity": "minor",
+          "category": "claim-drift",
+          "pageExcerpt": "With Unity Catalog, only Databricks provides end-to-end governance for agents.",
+          "sourceExcerpt": "Databricks Data + AI Platform ... provides a unified foundation for all data and governance.",
+          "explanation": "The positioning supports unified governance but not an exclusivity claim. 'Only Databricks' is an unsubstantiated superlative that legal or competitive review may challenge, and it goes beyond the stated position."
+        },
+        {
+          "severity": "minor",
+          "category": "dilution",
+          "pageExcerpt": "Databricks Model Serving ... MLflow, the leading open source MLOps and LLMOps solution ... Boost team productivity with Databricks Collaborative Notebooks, enabling real-time collaboration and streamlined data science workflows.",
+          "sourceExcerpt": "A data and AI company, not a data engineering vendor. The promise is unified data and AI on one open platform, governed, available to everyone in the organization in natural language",
+          "explanation": "The lower half of the page is a long list of MLOps and data science tooling (Notebooks, Model Training, MLflow, Data Quality Monitoring) written in engineer vocabulary. This drifts toward a technical-tools vendor and away from the unified platform promise accessible to everyone."
+        },
+        {
+          "severity": "minor",
+          "category": "framing",
+          "pageExcerpt": "Ready to become a data + AI company? Take the first steps in your transformation",
+          "sourceExcerpt": "\"Databricks is the data and AI company.\"",
+          "explanation": "The closing CTA is aimed at the customer's identity and is acceptable. However, the page is otherwise AI-first and rarely connects to the unified Data + AI Platform, which appears only in a single passing blurb. The unified-platform message is underplayed relative to point products."
+        },
+        {
+          "severity": "info",
+          "category": "stale-messaging",
+          "pageExcerpt": "Start your 14-day trial with up to $400 in free credits ... See how the Databricks marketing team unified data, scaled AI and boosted efficiency with an agentic marketing lakehouse",
+          "sourceExcerpt": "Copy that leads with lakehouse or data warehousing as the end in itself ... is out of step with the stated position.",
+          "explanation": "The marketing promo module leads with 'agentic marketing lakehouse' and is unrelated to the page's AI-agent focus. It may be leftover content from another page. Worth a human review for relevance, along with the trial offer terms, which should be checked for currency."
+        }
+      ],
+      "summary": "The page is broadly on-message: it uses the Data + AI Platform name, stresses grounding agents in enterprise data and governance, and cites credible customers such as Block and Comcast. Drift is concentrated in an engineer-centric audience framing, missing the 2026 context thesis and openness identity, and stale or inconsistent product naming and model references.",
+      "alignmentScore": 68,
+      "charsAnalyzed": 12466
+    },
+    {
+      "url": "https://www.databricks.com/product/pricing",
+      "label": "Pricing",
+      "title": "Databricks Pricing: Flexible Plans for Data and AI Solutions | Databricks",
+      "importance": "medium",
+      "fetchStatus": 200,
+      "error": null,
+      "findings": [
+        {
+          "severity": "major",
+          "category": "stale-messaging",
+          "pageExcerpt": "A Databricks Unit (DBU) is a normalized unit of processing power on the Databricks Lakehouse Platform used for measurement and pricing purposes.",
+          "sourceExcerpt": "The platform name in current use is the Data + AI Platform. Copy that ... uses a superseded platform name is out of step with the stated position.",
+          "explanation": "The DBU definition uses 'Databricks Lakehouse Platform,' a superseded name, while the rest of the same page says 'Data + AI Platform.' This creates an internal naming inconsistency and signals stale copy in a definition customers rely on for billing."
+        },
+        {
+          "severity": "minor",
+          "category": "dilution",
+          "pageExcerpt": "One simple platform to unify all your data, analytics and AI workloads — across all your preferred clouds",
+          "sourceExcerpt": "\"Databricks is the data and AI company.\" Its platform is the Data + AI Platform, \"built on an open lakehouse architecture,\"",
+          "explanation": "The hero is broadly aligned on unification and AI, but it omits the Data + AI Platform name and the open positioning. 'Data, analytics and AI workloads' reads as generic cloud-platform language. A pricing page is the place where openness and the platform identity could reinforce value."
+        },
+        {
+          "severity": "minor",
+          "category": "omission",
+          "pageExcerpt": "Databricks products are priced to provide compelling Total Cost of Ownership (TCO) to customers for their workloads. When estimating your savings with Databricks , it is important to consider key aspects of alternative solutions...",
+          "sourceExcerpt": "The keynote organized the roadmap around four enterprise AI challenges: context, cost, control, and choice.",
+          "explanation": "The TCO answer is the one place on the page where the 'cost' pillar of the 2026 thesis applies, but it is framed only as generic price/performance. It never links cost to governed data or AI context, and it makes no mention of choice or control. This misses a chance to connect pricing to the stated narrative."
+        },
+        {
+          "severity": "minor",
+          "category": "audience-mismatch",
+          "pageExcerpt": "Databricks Community Edition is a free, limited functionality platform designed for anyone who wants to learn Spark.",
+          "sourceExcerpt": "A data and AI company, not a data engineering vendor. ... Copy that ... omits AI and agents from the core promise ... is out of step with the stated position.",
+          "explanation": "The Community Edition is described solely as a way to learn Spark, which frames the free entry point as a data-engineering tool. It leaves out the AI and natural-language audience Databricks wants to reach. This narrows the perceived on-ramp for business users and AI practitioners."
+        },
+        {
+          "severity": "info",
+          "category": "omission",
+          "pageExcerpt": "Your trial includes free access to the Databricks Data + AI Platform, which allows you to manage all your data, analytics and AI in one place.",
+          "sourceExcerpt": "\"Anyone in an organization can benefit from automation and natural language to discover and use data like experts.\"",
+          "explanation": "The trial description speaks to managing data and AI, but not to the business-user, natural-language access story. This is a transactional page, so the omission may be acceptable, but it is worth a human review whether the trial copy should signal broader accessibility."
+        },
+        {
+          "severity": "info",
+          "category": "omission",
+          "pageExcerpt": "Pay as you go ... Committed Use Contracts ... Explore products",
+          "sourceExcerpt": "Databricks was \"founded in 2013 by the original creators of the lakehouse architecture and open source projects Apache Spark, Delta Lake, MLflow and Unity Catalog.\"",
+          "explanation": "The page contains no trust or credibility signals such as customer proof, open source heritage, or partner ecosystem. For a pricing page, these elements could ease purchase decisions, but their absence is not a contradiction, so this is flagged only for review."
+        }
+      ],
+      "summary": "The pricing page is largely aligned in its use of the current 'Data + AI Platform' name and its unified data, analytics and AI framing. The main drift is one stale 'Databricks Lakehouse Platform' reference in the DBU definition, plus a Spark-centric Community Edition description and few signals of openness, AI context, or business-user access. As a transactional, medium-importance page, the gaps are mostly minor.",
+      "alignmentScore": 76,
+      "charsAnalyzed": 6968
+    },
+    {
+      "url": "https://www.databricks.com/company/about-us",
+      "label": "About",
+      "title": "About Databricks: The data and AI company | Databricks",
+      "importance": "low",
+      "fetchStatus": 200,
+      "error": null,
+      "findings": [
+        {
+          "severity": "info",
+          "category": "omission",
+          "pageExcerpt": "Databricks democratizes insights to everyone in an organization. Built on an open lakehouse architecture, the Data + AI Platform provides a unified foundation for all data and governance, combined with AI models tuned to an organization’s unique characteristics.",
+          "sourceExcerpt": "Enterprise AI succeeds when models are grounded in a company's own governed data, and the platform's job is to supply that context. The keynote organized the roadmap around four enterprise AI challenges: context, cost, control, and choice.",
+          "explanation": "The About page does not reflect the 2026 thesis (AI has a context problem, not an intelligence problem) or the context/cost/control/choice framing. The closest echo is 'AI models tuned to an organization's unique characteristics,' which is adjacent but not the same argument. Because this is a low-importance corporate boilerplate page and the source describes the thesis as a keynote framing rather than About-page copy, this is worth a human look but not a defect."
+        },
+        {
+          "severity": "info",
+          "category": "omission",
+          "pageExcerpt": "Now, anyone in an organization can benefit from automation and natural language to discover and use data like experts, and technical teams can easily build and deploy secure data and AI apps and products.",
+          "sourceExcerpt": "Every major announcement (Genie One, LTAP, Lakehouse//RT, the Unity AI Gateway) was framed as an answer to one of the four.",
+          "explanation": "The page does not mention agents or the 2026 product names, while the source says copy that omits AI and agents from the core promise is out of step. The page does lead with AI and natural language, so the core promise is intact. A reviewer may want to decide whether 'agents' should appear in the company description."
+        }
+      ],
+      "summary": "The page is almost verbatim aligned with the stated positioning: it uses 'the data and AI company', the current Data + AI Platform name, the open lakehouse foundation, both audiences, the open source founding lineage, and the 20,000+ customer and 1,200+ partner claims. The only gaps are the absence of the 2026 context-for-AI thesis and agent language, which are low-risk for a corporate About page.",
+      "alignmentScore": 93,
+      "charsAnalyzed": 1554
+    }
+  ],
+  "overallScore": 71.8,
+  "executiveSummary": "Messaging is mostly aligned. Scores run from 66 to 76 on the five commercial pages, and the About page scores 93. The most serious pattern is stale or unfinished content on high-traffic pages: the homepage still carries a \"last chance to register\" banner for a Summit that has already happened, and Why Databricks has lorem-ipsum case studies and a superseded \"Databricks Lakehouse\" teaser. The Platform page is the weakest at 66. Its FAQ reverts to Spark-era data engineering language, makes an unsupported \"only platform\" claim, and offers a competing unification thesis and unverified competitive assertions. The 2026 context/cost/control/choice thesis and the open-source heritage (creators of Spark, Delta Lake, MLflow and Unity Catalog) are missing or underused on most pages. The AI page also uses inconsistent gateway names (Unity Gateway, AI Gateway, Agent Bricks AI Gateway) and dated model versions. Start with the Platform FAQ rewrite, the homepage banner and hero, and the Why Databricks placeholder content. Then standardize product names (Unity AI Gateway, Genie) and add the 20,000+ customer, 70% of the Fortune 500 and open-source proof points across all pages.",
+  "counts": {
+    "critical": 0,
+    "major": 13,
+    "minor": 18,
+    "info": 9
+  },
+  "durationMs": 34847
+}

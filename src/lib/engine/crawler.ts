@@ -9,21 +9,44 @@ import { assertPublicHost, normalizeSiteUrl, UnsafeUrlError } from "./url-safety
 
 const STRIP_ELEMENTS = ["script", "style", "nav", "footer", "header", "aside", "noscript", "iframe", "svg", "form", "template"];
 
-const NON_CONTENT_PATTERNS = [
+/**
+ * Class and id tokens that mark page chrome rather than copy. Matched as whole
+ * tokens, never substrings: "nav" must not catch "navy" or "canvas", and
+ * "banner" is left alone because hero banners are the copy we want.
+ */
+const NON_CONTENT_TOKENS = new Set([
   "nav",
   "navbar",
   "navigation",
+  "breadcrumb",
+  "breadcrumbs",
   "footer",
   "sidebar",
   "menu",
+  "megamenu",
   "cookie",
-  "banner",
+  "cookies",
+  "consent",
   "popup",
   "modal",
   "advertisement",
-  "ad-",
-  "social-share",
-];
+  "ad",
+  "ads",
+  "skip",
+]);
+
+/** Splits "site-nav lg:text-navy-800 mainMenu" into lowercase tokens: site, nav, lg, text, navy, 800, main, menu. */
+export function classTokens(value: string): string[] {
+  return value
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+}
+
+export function looksLikeChrome(cls: string, id: string): boolean {
+  return classTokens(`${cls} ${id}`).some((t) => NON_CONTENT_TOKENS.has(t));
+}
 
 const BLOCK_SELECTOR = "p, h1, h2, h3, h4, h5, h6, li, div, section, article, blockquote, td, th, tr, dt, dd, figcaption, summary, label, pre";
 
@@ -70,13 +93,12 @@ export function extractPage(html: string, baseUrl?: string): ExtractedPage {
 
   $("*").each((_, el) => {
     if (el.type !== "tag") return;
-    const cls = ($(el).attr("class") ?? "").toLowerCase();
-    const id = ($(el).attr("id") ?? "").toLowerCase();
+    // Never strip the content root or anything that contains it.
+    if (el.tagName === "main" || el.tagName === "body" || el.tagName === "html" || $(el).find("main").length) return;
+    const cls = $(el).attr("class") ?? "";
+    const id = $(el).attr("id") ?? "";
     if (!cls && !id) return;
-    const combined = `${cls} ${id}`;
-    if (NON_CONTENT_PATTERNS.some((p) => combined.includes(p))) {
-      $(el).remove();
-    }
+    if (looksLikeChrome(cls, id)) $(el).remove();
   });
 
   let target = $("main").first();

@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { ScoreInline } from "@/components/score-ring";
 import { SeverityMark, severityMeta } from "@/components/severity-badge";
-import { EXAMPLE_REPORT } from "@/lib/example";
+import { EXAMPLES } from "@/lib/example";
 import { SEVERITIES } from "@/lib/engine/schema";
 
 export default function Home() {
-  const example = EXAMPLE_REPORT;
+  const featured = EXAMPLES[0];
+  const example = featured.report;
   const all = example.pages.flatMap((p) => p.findings.map((f) => ({ ...f, page: p.label })));
-  const lead = all.find((f) => f.severity === "critical") ?? all[0];
-  const pages = [...example.pages].sort((a, b) => a.alignmentScore - b.alignmentScore);
+  const lead = all.find((f) => f.severity === "critical") ?? all.find((f) => f.severity === "major") ?? all[0];
+  const pages = [...example.pages].sort((a, b) => (a.error ? 101 : a.alignmentScore) - (b.error ? 101 : b.alignmentScore));
 
   return (
     <>
@@ -16,7 +17,7 @@ export default function Home() {
       <section className="guides">
         <div className="page grid-12 gap-y-12 pb-20 pt-16 sm:pt-24 lg:pb-28">
           <div className="col-span-12 lg:col-span-8">
-            <p className="label on-paper w-fit">Semantic messaging drift detection</p>
+            <p className="label on-paper w-fit">Your live site, read against your positioning document</p>
             <h1 className="h-display on-paper mt-6 max-w-[14ch]">
               Find the pages still selling <span className="mark">the old story.</span>
             </h1>
@@ -85,11 +86,11 @@ export default function Home() {
         <div className="page grid-12 gap-y-10 py-16 lg:py-20">
           <div className="col-span-12 lg:col-span-3">
             <p className="label">Example report</p>
-            <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
-              A fictional company, scanned for real. The pricing page sells to a buyer the positioning rules out, which is the
-              single largest source of drift on the site.
+            <p className="mt-4 text-[15px] leading-relaxed text-ink-2">{featured.blurb}</p>
+            <p className="mt-5 flex flex-col gap-2 text-[15px]">
+              <Link href={`/example/${featured.slug}`} className="link">Open the full report</Link>
+              <Link href="/example" className="link">All example reports</Link>
             </p>
-            <Link href="/example" className="link mt-5 inline-block text-[15px]">Open the full report</Link>
           </div>
           <div className="col-span-12 lg:col-span-8 lg:col-start-5">
             <div className="flex items-baseline justify-between border-b border-ink pb-3">
@@ -101,8 +102,8 @@ export default function Home() {
                 <li key={p.url} className="grid grid-cols-[2rem_1fr_auto] items-baseline gap-4 border-b border-rule py-4 sm:grid-cols-[2rem_1fr_8rem_8rem]">
                   <span className="font-mono text-xs text-muted">{String(i + 1).padStart(2, "0")}</span>
                   <span className="font-medium">{p.label}</span>
-                  <span className="hidden text-sm text-muted sm:inline">{p.findings.length} finding{p.findings.length === 1 ? "" : "s"}</span>
-                  <span className="text-right"><ScoreInline score={p.alignmentScore} /></span>
+                  <span className="hidden text-sm text-muted sm:inline">{p.error ? "not read" : `${p.findings.length} finding${p.findings.length === 1 ? "" : "s"}`}</span>
+                  <span className="text-right">{p.error ? <span className="text-sm text-muted">Not read</span> : <ScoreInline score={p.alignmentScore} />}</span>
                 </li>
               ))}
             </ol>
@@ -143,13 +144,18 @@ export default function Home() {
               positioning the leadership team agreed on. It rarely does. This is the tool I built to do that check in minutes, and
               it is open source so you can run it on your own.
             </p>
-            <p className="mt-5 text-[15px] text-muted">
-              Page Sands, <a href="https://sandsdx.com" className="link" target="_blank" rel="noopener noreferrer">SandsDX</a>
+            <p className="mt-5 text-[15px] leading-relaxed text-ink-2">
+              If you want someone to run this check with you and fix what it finds, that is the work{" "}
+              <a href="https://sandsdx.com" className="link" target="_blank" rel="noopener noreferrer">SandsDX</a> does.
             </p>
+            <p className="mt-5 text-[15px] text-muted">Page Sands, SandsDX</p>
           </div>
           <dl className="col-span-12 lg:col-span-3 lg:col-start-10 text-[15px]">
             <dt className="label">Reading</dt>
-            <dd className="mt-2 text-ink-2">Claude Sonnet, structured output checked against a schema before it renders.</dd>
+            <dd className="mt-2 text-ink-2">
+              Claude Sonnet, structured output checked against a schema before it renders.{" "}
+              <Link href="/method" className="link">Full method</Link>.
+            </dd>
             <dt className="label mt-5">Crawling</dt>
             <dd className="mt-2 text-ink-2">One plain fetch per page. Navigation and chrome stripped. No scripts run.</dd>
             <dt className="label mt-5">Scoring</dt>

@@ -1,11 +1,23 @@
 import { IMPORTANCE_WEIGHT, type PageAnalysis, type SeverityCounts } from "./schema";
 
-/** Importance-weighted mean of page scores. Matches DriftReport.compute_overall_score in the CLI. */
-export function computeOverallScore(pages: Pick<PageAnalysis, "alignmentScore" | "importance">[]): number {
-  if (pages.length === 0) return 0;
+type Scorable = Pick<PageAnalysis, "alignmentScore" | "importance"> & Partial<Pick<PageAnalysis, "error" | "charsAnalyzed">>;
+
+/** A page counts toward the overall score only if it was actually read and analyzed. */
+export function wasRead(page: Partial<Pick<PageAnalysis, "error" | "charsAnalyzed">>): boolean {
+  return !page.error && (page.charsAnalyzed === undefined || page.charsAnalyzed > 0);
+}
+
+/**
+ * Importance-weighted mean of page scores. Pages that could not be read are left
+ * out rather than counted as 0: an unreadable page is unknown, not off-message.
+ * Same weights as DriftReport.compute_overall_score in the CLI.
+ */
+export function computeOverallScore(pages: Scorable[]): number {
+  const read = pages.filter(wasRead);
+  if (read.length === 0) return 0;
   let totalWeight = 0;
   let weighted = 0;
-  for (const page of pages) {
+  for (const page of read) {
     const w = IMPORTANCE_WEIGHT[page.importance];
     totalWeight += w;
     weighted += page.alignmentScore * w;
