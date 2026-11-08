@@ -62,7 +62,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             </div>
           </div>
         ) : (
-          <div style={{ fontSize: 72, lineHeight: 1.05, letterSpacing: -2, maxWidth: 1000 }}>Find where your website stopped saying what you meant.</div>
+          <div style={{ fontSize: 72, lineHeight: 1.05, letterSpacing: -2, maxWidth: 1000 }}>Find the pages still selling the old story.</div>
         )}
 
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 22, color: OG_COLORS.muted }}>

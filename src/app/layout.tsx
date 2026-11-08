@@ -12,7 +12,7 @@ const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: `${SITE_NAME}: find where your website stopped saying what you meant`,
+    default: `${SITE_NAME}: find the pages still selling the old story`,
     template: `%s · ${SITE_NAME}`,
   },
   description: `${SITE_TAGLINE} Paste your positioning document, point msgdrift at your site, and get a line-by-line drift report. Free, no login.`,

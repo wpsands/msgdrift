@@ -1,6 +1,6 @@
 # msgdrift
 
-**Find where your website stopped saying what you meant.**
+**Find the pages still selling the old story.**
 
 msgdrift compares a website's live copy against the positioning document that was supposed to govern it, and reports where the copy contradicts, dilutes, or omits the message. It reads for meaning, not for matching words: a page can use none of your vocabulary and be on-message, or quote your tagline and undercut it in the next sentence.
 

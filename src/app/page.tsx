@@ -18,7 +18,7 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-8">
             <p className="label">Semantic messaging drift detection</p>
             <h1 className="h-display mt-6 max-w-[14ch]">
-              Find where your website stopped saying <span className="mark">what you meant.</span>
+              Find the pages still selling <span className="mark">the old story.</span>
             </h1>
           </div>
           <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:pt-14">
