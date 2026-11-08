@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <header className="grid-12 gap-y-6">
         <div className="col-span-12 lg:col-span-7">
           <p className="label">Privacy</p>
-          <h1 className="h-display mt-4 max-w-[14ch]">What happens to what you paste.</h1>
+          <h1 className="h-display mt-4 max-w-[14ch]">What msgdrift keeps, and what it does not.</h1>
         </div>
         <p className="col-span-12 text-[17px] leading-relaxed text-ink-2 lg:col-span-4 lg:col-start-9 lg:pt-10">
           Short version: your document is read once and not saved. The report keeps only the sentences it quotes. You can

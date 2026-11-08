@@ -10,7 +10,7 @@ export function SiteHeader() {
         </Link>
         <nav aria-label="Primary" className="flex items-center gap-6 text-[15px]">
           <Link href="/#how" className="hidden text-ink-2 hover:text-blue sm:inline">How it works</Link>
-          <Link href="/example" className="hidden text-ink-2 hover:text-blue sm:inline">Example</Link>
+          <Link href="/example" className="hidden text-ink-2 hover:text-blue sm:inline">Examples</Link>
           <a href="https://github.com/wpsands/msgdrift" target="_blank" rel="noopener noreferrer" className="hidden text-ink-2 hover:text-blue sm:inline">
             Source
           </a>
