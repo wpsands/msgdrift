@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 function withFormat(base: string, format: string): string {
   return `${base}${base.includes("?") ? "&" : "?"}format=${format}`;
@@ -10,7 +11,10 @@ function withFormat(base: string, format: string): string {
 export function ShareBar({ reportId, shareUrl, downloadBase }: { reportId: string; shareUrl: string; downloadBase?: string }) {
   const [copied, setCopied] = useState(false);
 
+  const example = Boolean(downloadBase?.startsWith("/api/example"));
+
   async function copy() {
+    track("report_link_copied", { example });
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -27,8 +31,8 @@ export function ShareBar({ reportId, shareUrl, downloadBase }: { reportId: strin
       <button type="button" onClick={copy} className="btn btn-sm">
         {copied ? "Link copied" : "Copy share link"}
       </button>
-      <a href={withFormat(base, "md")} className="link">Download markdown</a>
-      <a href={withFormat(base, "json")} className="link">JSON</a>
+      <a href={withFormat(base, "md")} className="link" onClick={() => track("report_downloaded", { format: "md", example })}>Download markdown</a>
+      <a href={withFormat(base, "json")} className="link" onClick={() => track("report_downloaded", { format: "json", example })}>JSON</a>
       <Link href="/scan" className="link">Scan your own site</Link>
     </div>
   );

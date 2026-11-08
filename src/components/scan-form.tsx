@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { rememberOwnerToken } from "@/lib/owner";
+import { elapsedSeconds, roughChars, startTimer, track } from "@/lib/analytics";
+import { scoreBand } from "@/lib/engine/scoring";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SAMPLE_POSITIONING, SAMPLE_POSITIONING_LABEL } from "@/data/sample-positioning";
 import type { DiscoveryResult, SuggestedPage } from "@/lib/engine/discover";
@@ -39,6 +41,12 @@ export function ScanForm() {
   const [stage, setStage] = useState<string>("");
   const [reportId, setReportId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Mirrors for the analytics calls inside the stream loop, which closes over stale state.
+  const startedAtRef = useRef(0);
+  const progressRef = useRef<Record<string, PageProgress>>({});
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -144,6 +152,8 @@ export function ScanForm() {
     }
     setPhase("running");
     setStage("Starting");
+    track("scan_started", { pages: selected.length, doc_chars: roughChars(doc.length), used_sample: doc === SAMPLE_POSITIONING });
+    startedAtRef.current = startTimer();
     const initial: Record<string, PageProgress> = {};
     for (const r of selected) initial[r.url] = { url: r.url };
     setProgress(initial);
@@ -169,6 +179,7 @@ export function ScanForm() {
           const mins = Math.ceil(data.retryAfterSeconds / 60);
           message += ` Try again in about ${mins} minute${mins === 1 ? "" : "s"}.`;
         }
+        track("scan_failed", { reason: res.status === 429 ? "rate_limited" : "request_failed", status: res.status });
         throw new Error(message);
       }
       if (!res.body) throw new Error("No response stream.");
@@ -189,6 +200,7 @@ export function ScanForm() {
       }
     } catch (err) {
       if (controller.signal.aborted) {
+        track("scan_failed", { reason: "cancelled" });
         setPhase("pages");
         return;
       }
@@ -220,6 +232,13 @@ export function ScanForm() {
         setReportId(event.reportId);
         setPhase("done");
         rememberOwnerToken(event.reportId, event.deleteToken);
+        track("scan_completed", {
+          pages: Object.keys(progressRef.current).length,
+          pages_not_read: Object.values(progressRef.current).filter((p) => p.fetch?.error).length,
+          overall_score: Math.round(event.overallScore),
+          band: scoreBand(event.overallScore),
+          duration_s: elapsedSeconds(startedAtRef.current),
+        });
         try {
           localStorage.removeItem(DRAFT_KEY);
         } catch {
@@ -228,6 +247,7 @@ export function ScanForm() {
         router.push(`/r/${event.reportId}`);
         break;
       case "error":
+        track("scan_failed", { reason: "stream_error" });
         setError(event.message);
         setPhase("pages");
         break;
@@ -277,7 +297,7 @@ export function ScanForm() {
           <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
             <input ref={fileRef} type="file" accept=".md,.txt,.markdown,text/plain,text/markdown" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.currentTarget.value = ""; }} />
             <button type="button" onClick={() => fileRef.current?.click()} disabled={locked} className="link disabled:opacity-40">Upload a .md or .txt file</button>
-            <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setError(null); }} disabled={locked} className="link disabled:opacity-40">
+            <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setError(null); track("sample_loaded"); }} disabled={locked} className="link disabled:opacity-40">
               Use the sample document
             </button>
             <span className={`ml-auto font-mono text-xs ${docChars > LIMITS.maxSourceChars * 0.95 ? "text-blue" : "text-muted"}`}>

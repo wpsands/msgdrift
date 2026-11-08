@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { deleteLink, deleteReport, forgetOwnerToken, readOwnerToken } from "@/lib/owner";
+import { track } from "@/lib/analytics";
 
 /**
  * Shown only in the browser that ran the scan, which holds the delete token.
@@ -38,6 +39,7 @@ export function OwnerActions({ reportId }: { reportId: string }) {
     setStep("working");
     const result = await deleteReport(reportId, token!);
     if (result.ok) {
+      track("report_deleted");
       forgetOwnerToken(reportId);
       router.replace("/scan?deleted=1");
       return;
