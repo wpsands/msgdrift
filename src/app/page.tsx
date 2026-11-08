@@ -17,7 +17,7 @@ export default function Home() {
       <section className="guides">
         <div className="page grid-12 gap-y-12 pb-20 pt-16 sm:pt-24 lg:pb-28">
           <div className="col-span-12 lg:col-span-8">
-            <p className="label on-paper w-fit">Your live site, read against your positioning document</p>
+            <p className="label on-paper w-fit">Positioning check for live websites</p>
             <h1 className="h-display on-paper mt-6 max-w-[14ch]">
               Find the pages still selling <span className="mark">the old story.</span>
             </h1>
@@ -71,12 +71,13 @@ export default function Home() {
       <section id="how" className="border-t border-rule">
         <div className="page py-16 lg:py-20">
           <div className="grid-12 gap-y-6">
-            <h2 className="h-section col-span-12 lg:col-span-6">Three steps. About ninety seconds.</h2>
+            <h2 className="h-section col-span-12 lg:col-span-6">How a scan works</h2>
+            <p className="col-span-12 text-[17px] leading-relaxed text-ink-2 lg:col-span-4 lg:col-start-9 lg:pt-2">Three steps. A six-page scan finishes in about two minutes.</p>
           </div>
           <ol className="grid-12 mt-14 gap-y-12">
-            <Step n="01" title="Paste what you meant" body="Your positioning document, messaging guide, or the strategy memo everyone agreed on. Markdown or plain text, up to 20,000 characters. It is used for the scan and kept only inside the report." />
+            <Step n="01" title="Paste your positioning document" body="Your positioning document, messaging guide, or the strategy memo everyone agreed on. Markdown or plain text, up to 20,000 characters. It is used for the scan and kept only inside the report." />
             <Step n="02" title="Choose the pages" body="Enter your domain. msgdrift reads the homepage, proposes the pages that carry positioning, such as pricing, product, and about, and lets you weight each one. Up to six per scan." />
-            <Step n="03" title="Read the drift" body="Findings arrive as the pages are read. Each one quotes the page and the positioning side by side, with a severity and a plain note on the business impact. Share the link, or download it as markdown." />
+            <Step n="03" title="Read the report" body="Findings arrive as the pages are read. Each one quotes the page and the positioning side by side, with a severity and a plain note on the business impact. Share the link, or download it as markdown." />
           </ol>
         </div>
       </section>
@@ -85,7 +86,7 @@ export default function Home() {
       <section className="border-t border-rule">
         <div className="page grid-12 gap-y-10 py-16 lg:py-20">
           <div className="col-span-12 lg:col-span-3">
-            <p className="label">Example report</p>
+            <p className="label">Example report: {featured.company}</p>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-2">{featured.blurb}</p>
             <p className="mt-5 flex flex-col gap-2 text-[15px]">
               <Link href={`/example/${featured.slug}`} className="link">Open the full report</Link>
@@ -115,7 +116,7 @@ export default function Home() {
       <section className="border-t border-rule">
         <div className="page grid-12 gap-y-10 py-16 lg:py-20">
           <div className="col-span-12 lg:col-span-3">
-            <p className="label">Severity</p>
+            <p className="label">Severity levels</p>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
               The model is told what counts as drift and what counts as ordinary adaptation. Pages adapt the message for context.
               Drift is when the adaptation changes the meaning, weakens the position, or targets the wrong buyer.
@@ -136,7 +137,7 @@ export default function Home() {
       <section className="border-t border-rule">
         <div className="page grid-12 gap-y-10 py-16 lg:py-20">
           <div className="col-span-12 lg:col-span-3">
-            <p className="label">Why it exists</p>
+            <p className="label">Why I built it</p>
           </div>
           <div className="col-span-12 lg:col-span-5 lg:col-start-5">
             <p className="quote text-xl leading-relaxed">
@@ -151,16 +152,16 @@ export default function Home() {
             <p className="mt-5 text-[15px] text-muted">Page Sands, SandsDX</p>
           </div>
           <dl className="col-span-12 lg:col-span-3 lg:col-start-10 text-[15px]">
-            <dt className="label">Reading</dt>
+            <dt className="label">Model</dt>
             <dd className="mt-2 text-ink-2">
               Claude Sonnet, structured output checked against a schema before it renders.{" "}
               <Link href="/method" className="link">Full method</Link>.
             </dd>
-            <dt className="label mt-5">Crawling</dt>
+            <dt className="label mt-5">Page fetching</dt>
             <dd className="mt-2 text-ink-2">One plain fetch per page. Navigation and chrome stripped. No scripts run.</dd>
             <dt className="label mt-5">Scoring</dt>
             <dd className="mt-2 text-ink-2">Per page, 0 to 100. Weighted by importance: high 3x, medium 2x, low 1x.</dd>
-            <dt className="label mt-5">Code</dt>
+            <dt className="label mt-5">Source code</dt>
             <dd className="mt-2"><a href="https://github.com/wpsands/msgdrift" className="link" target="_blank" rel="noopener noreferrer">github.com/wpsands/msgdrift</a></dd>
           </dl>
         </div>
@@ -169,7 +170,7 @@ export default function Home() {
       {/* Close */}
       <section className="border-t border-ink">
         <div className="page grid-12 items-center gap-y-6 py-16">
-          <h2 className="h-section col-span-12 lg:col-span-8">Check one site. It takes less time than this page did.</h2>
+          <h2 className="h-section col-span-12 lg:col-span-8">Scan your own site. A six-page report takes about two minutes.</h2>
           <div className="col-span-12 lg:col-span-3 lg:col-start-10 lg:text-right">
             <Link href="/scan" className="btn">Scan a site</Link>
           </div>
