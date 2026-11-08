@@ -16,12 +16,12 @@ export default function Home() {
       <section className="guides">
         <div className="page grid-12 gap-y-12 pb-20 pt-16 sm:pt-24 lg:pb-28">
           <div className="col-span-12 lg:col-span-8">
-            <p className="label">Semantic messaging drift detection</p>
-            <h1 className="h-display mt-6 max-w-[14ch]">
+            <p className="label on-paper w-fit">Semantic messaging drift detection</p>
+            <h1 className="h-display on-paper mt-6 max-w-[14ch]">
               Find the pages still selling <span className="mark">the old story.</span>
             </h1>
           </div>
-          <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:pt-14">
+          <div className="on-paper col-span-12 lg:col-span-4 lg:col-start-9 lg:pt-14">
             <p className="text-[17px] leading-relaxed text-ink-2">
               Paste the document that defines your positioning. msgdrift reads your live pages and shows you, sentence by sentence,
               where the copy contradicts it, dilutes it, or leaves it out. You get a report you can send to whoever owns the page.
