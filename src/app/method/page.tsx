@@ -27,7 +27,7 @@ export default function MethodPage() {
       <header className="grid-12 gap-y-6">
         <div className="col-span-12 lg:col-span-7">
           <p className="label">Method</p>
-          <h1 className="h-display mt-4 max-w-[14ch]">How a page gets read, judged, and scored.</h1>
+          <h1 className="h-display mt-4 max-w-[14ch]">How msgdrift reads and scores a page.</h1>
         </div>
         <p className="col-span-12 text-[17px] leading-relaxed text-ink-2 lg:col-span-4 lg:col-start-9 lg:pt-10">
           msgdrift is a model reading two texts and reporting where they disagree. This page shows the exact instructions it works
@@ -36,7 +36,7 @@ export default function MethodPage() {
         </p>
       </header>
 
-      <Section label="01" title="What it reads">
+      <Section label="01" title="What the crawler reads">
         <p>
           One plain HTTP fetch per page, with a user agent that names this tool. No scripts run and nothing is clicked. Navigation,
           footers, cookie notices, menus, and forms are stripped by matching whole class and id tokens, so a class like
@@ -45,8 +45,8 @@ export default function MethodPage() {
         </p>
         <p>
           Up to {LIMITS.maxPages} pages per scan, the first {LIMITS.maxPageChars.toLocaleString()} characters of each. A page with
-          fewer than {LIMITS.minPageChars} characters of readable text is reported as not read rather than judged, because at that
-          size the model would be grading a cookie notice.
+          fewer than {LIMITS.minPageChars} characters of readable text is reported as not read. At that size the text is usually a
+          cookie notice or an empty shell, and a score would be meaningless.
         </p>
         <p>
           The positioning document is the text you paste, up to {LIMITS.maxSourceChars.toLocaleString()} characters. It is sent to
@@ -54,7 +54,7 @@ export default function MethodPage() {
         </p>
       </Section>
 
-      <Section label="02" title="What it is told">
+      <Section label="02" title="The prompt the model receives">
         <p>
           This is the system prompt, unedited. The per-page prompt adds the document, the page text, the page&apos;s URL and
           importance, and asks for at most eight findings, most important first, with the instruction that ordinary adaptation for
@@ -63,7 +63,7 @@ export default function MethodPage() {
         <pre className="mt-6 whitespace-pre-wrap border-l-2 border-rule pl-5 font-mono text-[13px] leading-relaxed text-ink-2">{SYSTEM_PROMPT}</pre>
       </Section>
 
-      <Section label="03" title="Eight kinds of drift">
+      <Section label="03" title="The eight drift categories">
         <dl>
           {CATEGORIES.map((c) => (
             <div key={c} className="grid gap-3 border-b border-rule py-5 sm:grid-cols-[11rem_1fr]">
@@ -74,7 +74,7 @@ export default function MethodPage() {
         </dl>
       </Section>
 
-      <Section label="04" title="Four severities">
+      <Section label="04" title="The four severity levels">
         <dl>
           {SEVERITIES.map((s) => (
             <div key={s} className="grid gap-3 border-b border-rule py-5 sm:grid-cols-[11rem_1fr]">
@@ -85,19 +85,19 @@ export default function MethodPage() {
         </dl>
       </Section>
 
-      <Section label="05" title="How the score is built">
+      <Section label="05" title="How the overall score is calculated">
         <p>
           Each page gets a 0 to 100 alignment score from the model, where 0 is completely off-message and 100 is fully aligned. The
           overall score is the importance-weighted mean of the pages that were read: high 3x, medium 2x, low 1x. A page that could
           not be read is left out rather than counted as zero, since unknown is not the same as off-message.
         </p>
         <p>
-          Bands are fixed. 80 and above is aligned, 60 to 79 is drifting, below 60 is off-message. Read the overall score as a
-          ranking of pages against each other and across time, not as a grade with a pass mark.
+          Bands are fixed. 80 and above is aligned, 60 to 79 is drifting, below 60 is off-message. The overall score ranks pages
+          against each other and against earlier scans of the same site. There is no pass mark.
         </p>
       </Section>
 
-      <Section label="06" title="Checks before anything renders">
+      <Section label="06" title="Checks on the model's output">
         <ul className="list-disc space-y-3 pl-5">
           <li>The model&apos;s answer must match a fixed schema: findings with severity, category, both quotes, and an explanation; a summary; a score. Anything else is rejected.</li>
           <li>If the answer is cut off by the output limit, the page is analyzed again with more room. If it is cut off twice, the page is marked not read.</li>
@@ -106,7 +106,7 @@ export default function MethodPage() {
         </ul>
       </Section>
 
-      <Section label="07" title="Where it is wrong">
+      <Section label="07" title="Known failure modes">
         <ul className="list-disc space-y-3 pl-5">
           <li>
             <strong className="font-medium text-ink">Pages that render in JavaScript.</strong> Many marketing sites ship an empty shell and
@@ -120,7 +120,7 @@ export default function MethodPage() {
           <li>
             <strong className="font-medium text-ink">Run to run variance.</strong> The model is sampled at low temperature, not zero. In
             two runs on the same six HubSpot pages on the same day, individual page scores moved by as much as 12 points while the
-            findings stayed substantially the same. Compare findings, not decimals.
+            findings stayed substantially the same. Compare the findings between runs rather than the scores.
           </li>
           <li>
             <strong className="font-medium text-ink">Thin or boilerplate pages.</strong> A customers index or a short about page gives
@@ -134,7 +134,7 @@ export default function MethodPage() {
         </ul>
       </Section>
 
-      <Section label="08" title="Model and code">
+      <Section label="08" title="Model, hosting, and source code">
         <p>
           Reads with <span className="font-mono">{DEFAULT_MODEL}</span> through Vercel AI Gateway with zero data retention requested
           on every call. Scan requests are rate limited per visitor and per day against a fixed budget. The web app and the
@@ -145,7 +145,7 @@ export default function MethodPage() {
       </Section>
 
       <section className="rule mt-20 grid-12 items-center gap-y-6 pt-10">
-        <h2 className="h-section col-span-12 lg:col-span-8">Read the method against a real report.</h2>
+        <h2 className="h-section col-span-12 lg:col-span-8">See the method applied to a real report.</h2>
         <div className="col-span-12 flex gap-6 lg:col-span-3 lg:col-start-10 lg:justify-end">
           <Link href="/example" className="btn">Example reports</Link>
           <Link href="/scan" className="link self-center">Scan a site</Link>

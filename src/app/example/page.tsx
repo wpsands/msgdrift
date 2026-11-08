@@ -16,7 +16,7 @@ export default function ExampleIndexPage() {
       <header className="grid-12 gap-y-6">
         <div className="col-span-12 lg:col-span-7">
           <p className="label">Example reports</p>
-          <h1 className="h-display mt-4 max-w-[14ch]">Two public companies, read against their own words.</h1>
+          <h1 className="h-display mt-4 max-w-[14ch]">Two real reports: HubSpot and Databricks.</h1>
         </div>
         <div className="col-span-12 text-[17px] leading-relaxed text-ink-2 lg:col-span-4 lg:col-start-9 lg:pt-10">
           <p>
@@ -24,9 +24,9 @@ export default function ExampleIndexPage() {
             from those statements, with the sources listed on the report. Nothing here was edited after the scan.
           </p>
           <p className="mt-4">
-            A public statement is a weaker standard than an internal messaging guide, so read these as a demonstration of what the
-            tool notices, not as a verdict on either company. The <Link href="/method" className="link">method page</Link> covers
-            where it is known to be wrong.
+            A public statement is a weaker standard than an internal messaging guide. These reports show what the tool notices.
+            They are not a verdict on either company. The <Link href="/method" className="link">method page</Link> covers where it
+            is known to be wrong.
           </p>
         </div>
       </header>

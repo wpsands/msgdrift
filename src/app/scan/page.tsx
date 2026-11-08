@@ -14,7 +14,7 @@ export default function ScanPage() {
       <header className="grid-12 gap-y-6">
         <div className="col-span-12 lg:col-span-7">
           <p className="label">New scan</p>
-          <h1 className="h-display mt-4 max-w-[14ch]">Check a site against what you meant to say.</h1>
+          <h1 className="h-display mt-4 max-w-[14ch]">Scan a website against its positioning document.</h1>
         </div>
         <p className="col-span-12 text-[17px] leading-relaxed text-ink-2 lg:col-span-4 lg:col-start-9 lg:pt-10">
           Three steps. Paste the document that defines your positioning, choose up to six pages, run the scan. Most finish in

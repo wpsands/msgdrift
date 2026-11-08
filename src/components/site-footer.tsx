@@ -14,7 +14,7 @@ export function SiteFooter() {
           </p>
         </div>
         <dl className="col-span-6 md:col-span-3 md:col-start-7">
-          <dt className="label">Use</dt>
+          <dt className="label">Pages</dt>
           <dd className="mt-3 flex flex-col gap-2">
             <Link href="/scan" className="hover:text-blue">Scan a site</Link>
             <Link href="/example" className="hover:text-blue">Example reports</Link>

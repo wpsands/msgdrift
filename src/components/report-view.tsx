@@ -56,7 +56,7 @@ export function ReportView({
       </header>
 
       <section className="rule-strong mt-16 pt-8 grid-12 gap-y-6">
-        <h2 className="label col-span-12 md:col-span-3">Summary</h2>
+        <h2 className="label col-span-12 md:col-span-3">Executive summary</h2>
         <p className="quote col-span-12 text-xl leading-relaxed md:col-span-8">{report.executiveSummary}</p>
       </section>
 
@@ -90,8 +90,8 @@ export function ReportView({
       <footer className="rule mt-20 pt-6 text-sm text-muted">
         <p>
           Read with <span className="font-mono">{report.model}</span>. Overall score weights pages by importance: high 3x, medium 2x,
-          low 1x, and leaves out pages that could not be read. Scores are a model&apos;s judgment of alignment. Read them as a ranking
-          across pages rather than a grade. This report keeps only the sentences it quotes; the full document was not saved.{" "}
+          low 1x, and leaves out pages that could not be read. Scores are a model&apos;s judgment of alignment. They rank pages against
+          each other. There is no pass mark. This report keeps only the sentences it quotes; the full document was not saved.{" "}
           <Link href="/method" className="link">Method</Link>. <Link href="/privacy" className="link">Privacy</Link>.
         </p>
         <p className="mt-3">
