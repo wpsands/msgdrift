@@ -79,7 +79,7 @@ export default function PrivacyPage() {
         <p>
           msgdrift uses PostHog to count page views and a short list of product events: a scan started, a scan finished
           with its page count, score band, and duration, a scan that failed, a sample loaded, a report link copied, a report
-          downloaded, a report deleted. These events carry counts and categories only. They never include your document, the
+          downloaded, a report deleted, a click on the Gap Map link at the end of a report. These events carry counts and categories only. They never include your document, the
           site or page URLs you scan, the report text, or a report id; report ids are removed from page URLs in the browser
           before anything is sent.
         </p>

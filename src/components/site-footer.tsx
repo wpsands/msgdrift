@@ -27,7 +27,7 @@ export function SiteFooter() {
           <dt className="label">Made by</dt>
           <dd className="mt-3 flex flex-col gap-2">
             <a href="https://pagesands.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue">Page Sands</a>
-            <a href="https://sandsdx.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue">SandsDX</a>
+            <a href="https://sandsdx.com/?utm_source=msgdrift&utm_medium=referral&utm_campaign=footer" target="_blank" rel="noopener noreferrer" className="hover:text-blue">SandsDX</a>
             <span className="text-muted">Charleston, South Carolina</span>
           </dd>
         </dl>
