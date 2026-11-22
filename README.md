@@ -104,4 +104,4 @@ Scheduled re-scans to track drift over time, saved history behind an account, PD
 
 ## Author
 
-Built by [Page Sands](https://pagesands.com), founder of [SandsDX](https://sandsdx.com), a fractional GTM practice for B2B SaaS. MIT licensed.
+Built by [Page Sands](https://pagesands.com), founder of [SandsDX](https://sandsdx.com/?utm_source=msgdrift&utm_medium=referral&utm_campaign=readme), a fractional GTM practice for B2B SaaS. MIT licensed.

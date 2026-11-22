@@ -147,7 +147,7 @@ export default function Home() {
             </p>
             <p className="mt-5 text-[15px] leading-relaxed text-ink-2">
               If you want someone to run this check with you and fix what it finds, that is the work{" "}
-              <a href="https://sandsdx.com" className="link" target="_blank" rel="noopener noreferrer">SandsDX</a> does.
+              <a href="https://sandsdx.com/?utm_source=msgdrift&utm_medium=referral&utm_campaign=home" className="link" target="_blank" rel="noopener noreferrer">SandsDX</a> does.
             </p>
             <p className="mt-5 text-[15px] text-muted">Page Sands, SandsDX</p>
           </div>

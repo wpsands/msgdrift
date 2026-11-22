@@ -4,6 +4,7 @@ import { ScoreInline, ScoreRuler } from "./score-ring";
 import { SeverityCount, SeverityMark } from "./severity-badge";
 import { OwnerActions } from "./owner-actions";
 import { ShareBar } from "./share-bar";
+import { GapMapCta } from "./gap-map-cta";
 
 const SEVERITY_ORDER: Record<Severity, number> = { critical: 0, major: 1, minor: 2, info: 3 };
 
@@ -87,6 +88,8 @@ export function ReportView({
         ))}
       </div>
 
+      {total > 0 && <GapMapCta example={example} />}
+
       <footer className="rule mt-20 pt-6 text-sm text-muted">
         <p>
           Read with <span className="font-mono">{report.model}</span>. Overall score weights pages by importance: high 3x, medium 2x,
@@ -96,7 +99,7 @@ export function ReportView({
         </p>
         <p className="mt-3">
           msgdrift is built by{" "}
-          <a href="https://sandsdx.com" className="link" target="_blank" rel="noopener noreferrer">Page Sands, SandsDX</a>.
+          <a href="https://sandsdx.com/?utm_source=msgdrift&utm_medium=referral&utm_campaign=report_footer" className="link" target="_blank" rel="noopener noreferrer">Page Sands, SandsDX</a>.
         </p>
       </footer>
       {!example && <OwnerActions reportId={report.id} />}

@@ -13,7 +13,8 @@ export type AnalyticsEvent =
   | { name: "sample_loaded"; props?: undefined }
   | { name: "report_link_copied"; props: { example: boolean } }
   | { name: "report_downloaded"; props: { format: "md" | "json"; example: boolean } }
-  | { name: "report_deleted"; props?: undefined };
+  | { name: "report_deleted"; props?: undefined }
+  | { name: "gap_map_clicked"; props: { example: boolean } };
 
 export function track<E extends AnalyticsEvent>(name: E["name"], props?: E["props"]): void {
   try {
