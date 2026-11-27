@@ -27,18 +27,28 @@ export function ReportView({
   const scanned = new Date(report.createdAt);
   const total = SEVERITIES.reduce((n, s) => n + report.counts[s], 0);
   const sortedPages = [...report.pages].sort((a, b) => a.alignmentScore - b.alignmentScore);
+  const consistency = report.mode === "consistency";
 
   return (
     <article className="page py-12 sm:py-16">
       <header className="grid-12 gap-y-10">
         <div className="col-span-12 lg:col-span-7">
           <p className="label">
-            Drift report
+            {consistency ? "Consistency report" : "Drift report"}
             {exampleNote && <span className="ml-3 normal-case tracking-normal text-blue">{exampleNote}</span>}
           </p>
           <h1 className="h-display mt-4">{report.site}</h1>
           <p className="mt-5 text-[15px] text-ink-2">
-            {report.pages.length} page{report.pages.length === 1 ? "" : "s"} read against <span className="font-mono">{report.sourceLabel}</span>,{" "}
+            {consistency && report.baseline ? (
+              <>
+                {report.pages.length} page{report.pages.length === 1 ? "" : "s"} checked against the homepage,{" "}
+                <a href={report.baseline.url} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-blue">{report.baseline.url.replace(/^https?:\/\//, "")}</a>,{" "}
+              </>
+            ) : (
+              <>
+                {report.pages.length} page{report.pages.length === 1 ? "" : "s"} read against <span className="font-mono">{report.sourceLabel}</span>,{" "}
+              </>
+            )}
             <time dateTime={report.createdAt}>{scanned.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</time>.{" "}
             {total} finding{total === 1 ? "" : "s"} in {Math.round(report.durationMs / 1000)} seconds.
           </p>
@@ -84,7 +94,7 @@ export function ReportView({
 
       <div className="mt-20 space-y-20">
         {sortedPages.map((p, i) => (
-          <PageSection key={p.url} page={p} index={i + 1} />
+          <PageSection key={p.url} page={p} index={i + 1} consistency={consistency} />
         ))}
       </div>
 
@@ -92,9 +102,16 @@ export function ReportView({
 
       <footer className="rule mt-20 pt-6 text-sm text-muted">
         <p>
-          Read with <span className="font-mono">{report.model}</span>. Overall score weights pages by importance: high 3x, medium 2x,
-          low 1x, and leaves out pages that could not be read. Scores are a model&apos;s judgment of alignment. They rank pages against
-          each other. There is no pass mark. This report keeps only the sentences it quotes; the full document was not saved.{" "}
+          Read with <span className="font-mono">{report.model}</span>.{" "}
+          {consistency
+            ? "No positioning document was used. Each page was compared with the homepage, and only statements that conflict with it are reported. The homepage itself is the reference and is not scored. "
+            : ""}
+          Overall score weights pages by importance: high 3x, medium 2x, low 1x, and leaves out pages that could not be read.{" "}
+          {report.scoreMethod === "findings"
+            ? "Each page starts at 100 and loses points per finding by severity. "
+            : "Scores are a model\u2019s judgment of alignment. "}
+          Scores rank pages against each other. There is no pass mark.{" "}
+          {consistency ? "This report keeps only the sentences it quotes." : "This report keeps only the sentences it quotes; the full document was not saved."}{" "}
           <Link href="/method" className="link">Method</Link>. <Link href="/privacy" className="link">Privacy</Link>.
         </p>
         <p className="mt-3">
@@ -107,7 +124,7 @@ export function ReportView({
   );
 }
 
-function PageSection({ page, index }: { page: PageAnalysis; index: number }) {
+function PageSection({ page, index, consistency }: { page: PageAnalysis; index: number; consistency: boolean }) {
   const findings = [...page.findings].sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
   return (
     <section id={`page-${slug(page.url)}`} className="scroll-mt-10">
@@ -141,17 +158,17 @@ function PageSection({ page, index }: { page: PageAnalysis; index: number }) {
       {findings.length > 0 ? (
         <ol className="mt-10">
           {findings.map((f, i) => (
-            <FindingRow key={i} finding={f} n={i + 1} />
+            <FindingRow key={i} finding={f} n={i + 1} consistency={consistency} />
           ))}
         </ol>
       ) : (
-        !page.error && <p className="mt-8 text-sm text-ink-2">No drift found on this page.</p>
+        !page.error && <p className="mt-8 text-sm text-ink-2">{consistency ? "Nothing on this page conflicts with the homepage." : "No drift found on this page."}</p>
       )}
     </section>
   );
 }
 
-function FindingRow({ finding, n }: { finding: DriftFinding; n: number }) {
+function FindingRow({ finding, n, consistency }: { finding: DriftFinding; n: number; consistency: boolean }) {
   return (
     <li className="rule grid-12 gap-y-5 py-8">
       <div className="col-span-12 flex items-center gap-4 md:col-span-3 md:flex-col md:items-start md:gap-3">
@@ -167,7 +184,7 @@ function FindingRow({ finding, n }: { finding: DriftFinding; n: number }) {
           </p>
         </div>
         <div>
-          <p className="label">In the positioning</p>
+          <p className="label">{consistency ? "On the homepage" : "In the positioning"}</p>
           <p className="quote mt-3">{finding.sourceExcerpt}</p>
         </div>
         <p className="border-l-2 border-blue pl-4 text-[15px] leading-relaxed text-ink-2 md:col-span-2">{finding.explanation}</p>

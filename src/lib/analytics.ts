@@ -7,13 +7,10 @@ import type { ScoreBand } from "@/lib/engine/scoring";
  * domain being scanned, report text, or a report id. See /privacy.
  */
 export type AnalyticsEvent =
-  | { name: "scan_started"; props: { pages: number; doc_chars: number; used_sample: boolean } }
+  | { name: "scan_started"; props: { pages: number; doc_chars: number; used_sample: boolean; mode: "positioning" | "consistency" } }
   | { name: "scan_completed"; props: { pages: number; pages_not_read: number; overall_score: number; band: ScoreBand; duration_s: number } }
   | { name: "scan_failed"; props: { reason: "rate_limited" | "request_failed" | "stream_error" | "cancelled"; status?: number } }
   | { name: "sample_loaded"; props?: undefined }
-  | { name: "draft_requested"; props?: undefined }
-  | { name: "draft_generated"; props: { pages_read: number; doc_chars: number } }
-  | { name: "draft_failed"; props: { status: number } }
   | { name: "report_link_copied"; props: { example: boolean } }
   | { name: "report_downloaded"; props: { format: "md" | "json"; example: boolean } }
   | { name: "report_deleted"; props?: undefined }

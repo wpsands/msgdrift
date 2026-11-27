@@ -1,14 +1,17 @@
 import { generateText, Output } from "ai";
 import { fetchPages, type FetchResult } from "./crawler";
-import { buildAnalysisPrompt, buildExecutiveSummaryPrompt, SYSTEM_PROMPT } from "./prompts";
+import { buildAnalysisPrompt, buildConsistencyPrompt, buildExecutiveSummaryPrompt, CONSISTENCY_SYSTEM_PROMPT, SYSTEM_PROMPT } from "./prompts";
 import {
   LIMITS,
+  pickBaseline,
   pageAnalysisOutputSchema,
+  type DriftFinding,
   type DriftReport,
   type PageAnalysis,
   type PageAnalysisOutput,
   type PageConfig,
   type ScanEvent,
+  type ScanMode,
   type ScanRequest,
 } from "./schema";
 import { computeCounts, computeOverallScore, scoreFromFindings } from "./scoring";
@@ -61,26 +64,54 @@ export async function runScan(request: ScanRequest, options: RunScanOptions): Pr
     },
   );
 
-  const sourceContent = `### ${request.sourceLabel || "positioning.md"}\n\n${request.sourceDocument.slice(0, LIMITS.maxSourceChars)}`;
+  const mode = request.mode ?? "positioning";
+  let sourceContent: string;
+  let sourceLabel: string;
+  let sourceChars: number;
+  let baseline: DriftReport["baseline"];
+  // Indexes of the pages that are analyzed and scored. In a consistency check the baseline is not.
+  let targets = pages.map((_, i) => i);
 
-  const analyses: PageAnalysis[] = new Array(pages.length);
+  if (mode === "consistency") {
+    const b = pickBaseline(pages);
+    const home = fetched[b];
+    if (home.error || home.text.trim().length < LIMITS.minPageChars) {
+      throw new ScanInputError(
+        `The homepage could not be read (${home.error ?? "too little text"}), so there is nothing to check the other pages against. Add a positioning document instead.`,
+      );
+    }
+    const text = home.text.slice(0, LIMITS.maxSourceChars);
+    const url = home.finalUrl || pages[b].url;
+    sourceContent = `### Homepage: ${url}\n\n${text}`;
+    sourceLabel = "the homepage";
+    sourceChars = text.length;
+    baseline = { url, title: home.title, chars: text.length };
+    targets = targets.filter((i) => i !== b);
+    emit({ type: "baseline", url: pages[b].url });
+  } else {
+    sourceLabel = request.sourceLabel || "positioning.md";
+    sourceContent = `### ${sourceLabel}\n\n${request.sourceDocument.slice(0, LIMITS.maxSourceChars)}`;
+    sourceChars = request.sourceDocument.length;
+  }
+
+  const analyses: PageAnalysis[] = new Array(targets.length);
   let cursor = 0;
   const worker = async () => {
-    while (cursor < pages.length) {
-      const index = cursor++;
-      const page = pages[index];
-      const content = fetched[index];
+    while (cursor < targets.length) {
+      const slot = cursor++;
+      const page = pages[targets[slot]];
+      const content = fetched[targets[slot]];
       emit({ type: "analyze:start", url: page.url });
-      const analysis = await analyzePage({ page, content, sourceContent, model, signal: options.signal });
-      analyses[index] = analysis;
+      const analysis = await analyzePage({ page, content, sourceContent, model, mode, signal: options.signal });
+      analyses[slot] = analysis;
       emit({ type: "analyze:done", url: page.url, score: analysis.alignmentScore, findings: analysis.findings.length });
     }
   };
-  const concurrency = Math.max(1, Math.min(options.analysisConcurrency ?? 3, pages.length));
+  const concurrency = Math.max(1, Math.min(options.analysisConcurrency ?? 3, targets.length));
   await Promise.all(Array.from({ length: concurrency }, worker));
 
   emit({ type: "summary:start" });
-  const executiveSummary = await generateExecutiveSummary(analyses, model, options.signal);
+  const executiveSummary = await generateExecutiveSummary(analyses, model, options.signal, mode);
 
   const site = deriveSite(pages);
   const report: DriftReport = {
@@ -88,8 +119,8 @@ export async function runScan(request: ScanRequest, options: RunScanOptions): Pr
     version: 1,
     createdAt: new Date().toISOString(),
     site,
-    sourceLabel: request.sourceLabel || "positioning.md",
-    sourceChars: request.sourceDocument.length,
+    sourceLabel,
+    sourceChars,
     model,
     pages: analyses,
     overallScore: computeOverallScore(analyses),
@@ -97,8 +128,17 @@ export async function runScan(request: ScanRequest, options: RunScanOptions): Pr
     counts: computeCounts(analyses),
     durationMs: Date.now() - started,
     scoreMethod: "findings",
+    ...(mode === "consistency" ? { mode, baseline } : {}),
   };
   return report;
+}
+
+/** A problem with what the visitor asked for. Its message is safe to show as is. */
+export class ScanInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ScanInputError";
+  }
 }
 
 interface AnalyzePageInput {
@@ -106,10 +146,11 @@ interface AnalyzePageInput {
   content: FetchResult;
   sourceContent: string;
   model: string;
+  mode?: ScanMode;
   signal?: AbortSignal;
 }
 
-export async function analyzePage({ page, content, sourceContent, model, signal }: AnalyzePageInput): Promise<PageAnalysis> {
+export async function analyzePage({ page, content, sourceContent, model, mode = "positioning", signal }: AnalyzePageInput): Promise<PageAnalysis> {
   const base = {
     url: page.url,
     label: page.label || content.title || page.url,
@@ -128,7 +169,8 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
   }
 
   const pageText = content.text.slice(0, LIMITS.maxPageChars);
-  const prompt = buildAnalysisPrompt({
+  const buildPrompt = mode === "consistency" ? buildConsistencyPrompt : buildAnalysisPrompt;
+  const prompt = buildPrompt({
     sourceContent,
     pageUrl: content.finalUrl || page.url,
     pageImportance: page.importance,
@@ -144,7 +186,7 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
     for (const maxOutputTokens of [4096, 8192]) {
       const result = await generateText({
         model,
-        system: SYSTEM_PROMPT,
+        system: mode === "consistency" ? CONSISTENCY_SYSTEM_PROMPT : SYSTEM_PROMPT,
         prompt,
         output: Output.object({ schema: pageAnalysisOutputSchema }),
         temperature: 0.2,
@@ -157,13 +199,16 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
       break;
     }
     if (!output) throw new Error("The model's answer was cut off before it finished, twice.");
-    const findings = output.findings.slice(0, 12).map((f) => ({
-      severity: f.severity,
-      category: normalizeCategory(f.category),
-      pageExcerpt: f.pageExcerpt.trim(),
-      sourceExcerpt: f.sourceExcerpt.trim(),
-      explanation: f.explanation.trim(),
-    }));
+    const findings = keepFindings(
+      output.findings.slice(0, 12).map((f) => ({
+        severity: f.severity,
+        category: normalizeCategory(f.category),
+        pageExcerpt: f.pageExcerpt.trim(),
+        sourceExcerpt: f.sourceExcerpt.trim(),
+        explanation: f.explanation.trim(),
+      })),
+      mode,
+    );
     return {
       ...base,
       findings,
@@ -178,7 +223,16 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
   }
 }
 
-export async function generateExecutiveSummary(pages: PageAnalysis[], model: string, signal?: AbortSignal): Promise<string> {
+/**
+ * A consistency check reports conflicts only. Drop anything the model returned
+ * that is an omission or has no homepage quote, since neither is a conflict.
+ */
+export function keepFindings(findings: DriftFinding[], mode: ScanMode): DriftFinding[] {
+  if (mode !== "consistency") return findings;
+  return findings.filter((f) => f.category !== "omission" && f.sourceExcerpt.length > 0);
+}
+
+export async function generateExecutiveSummary(pages: PageAnalysis[], model: string, signal?: AbortSignal, mode: ScanMode = "positioning"): Promise<string> {
   const pageResults = pages
     .map((p) => {
       const findings = p.findings.length
@@ -191,7 +245,7 @@ export async function generateExecutiveSummary(pages: PageAnalysis[], model: str
   try {
     const { text } = await generateText({
       model,
-      prompt: buildExecutiveSummaryPrompt(pageResults),
+      prompt: buildExecutiveSummaryPrompt(pageResults, mode),
       temperature: 0.3,
       maxOutputTokens: 1024,
       abortSignal: signal,

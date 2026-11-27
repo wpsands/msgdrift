@@ -56,6 +56,14 @@ export default function MethodPage() {
           The positioning document is the text you paste, up to {LIMITS.maxSourceChars.toLocaleString()} characters. It is sent to
           the model once per page and is not stored. The report keeps only the sentences a finding quotes.
         </p>
+        <p>
+          Without a document, msgdrift runs a consistency check. The homepage becomes the reference, since it is usually the most
+          deliberate statement a company makes, and every other page is compared with it. The model reports only conflicts:
+          contradictions, the same claim with different facts (a customer count, a product name, a price), a different target
+          buyer, or framing that undercuts the homepage. It does not report what a page leaves out, because an About or pricing
+          page covers narrower ground by design. A finding with no homepage quote is dropped. The homepage itself is not scored.
+          This measures whether the site agrees with itself. It cannot tell you whether the homepage says the right thing.
+        </p>
       </Section>
 
       <Section label="02" title="The prompt the model receives">

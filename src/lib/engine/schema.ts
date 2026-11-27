@@ -45,15 +45,42 @@ export const pageConfigSchema = z.object({
 });
 export type PageConfig = z.infer<typeof pageConfigSchema>;
 
-export const scanRequestSchema = z.object({
-  sourceDocument: z
-    .string()
-    .min(LIMITS.minSourceChars, `Positioning document needs at least ${LIMITS.minSourceChars} characters.`)
-    .max(LIMITS.maxSourceChars, `Positioning document is capped at ${LIMITS.maxSourceChars} characters.`),
-  sourceLabel: z.string().max(120).default("positioning.md"),
-  pages: z.array(pageConfigSchema).min(1).max(LIMITS.maxPages),
-});
+/**
+ * "positioning": pages are read against a document the visitor supplies.
+ * "consistency": no document; the homepage is the baseline and every other page
+ * is checked for statements that conflict with it.
+ */
+export const SCAN_MODES = ["positioning", "consistency"] as const;
+export type ScanMode = (typeof SCAN_MODES)[number];
+
+export const scanRequestSchema = z
+  .object({
+    mode: z.enum(SCAN_MODES).default("positioning"),
+    sourceDocument: z.string().max(LIMITS.maxSourceChars, `Positioning document is capped at ${LIMITS.maxSourceChars} characters.`).default(""),
+    sourceLabel: z.string().max(120).default("positioning.md"),
+    pages: z.array(pageConfigSchema).min(1).max(LIMITS.maxPages),
+  })
+  .superRefine((req, ctx) => {
+    if (req.mode === "positioning" && req.sourceDocument.length < LIMITS.minSourceChars) {
+      ctx.addIssue({ code: "custom", path: ["sourceDocument"], message: `Positioning document needs at least ${LIMITS.minSourceChars} characters.` });
+    }
+    if (req.mode === "consistency" && req.pages.length < 2) {
+      ctx.addIssue({ code: "custom", path: ["pages"], message: "A consistency check needs the homepage and at least one other page." });
+    }
+  });
 export type ScanRequest = z.infer<typeof scanRequestSchema>;
+
+/** The baseline for a consistency check: the site root if listed, otherwise the first page. */
+export function pickBaseline(pages: Pick<PageConfig, "url">[]): number {
+  const root = pages.findIndex((p) => {
+    try {
+      return new URL(p.url).pathname.replace(/\/+$/, "") === "";
+    } catch {
+      return false;
+    }
+  });
+  return root >= 0 ? root : 0;
+}
 
 export const driftFindingSchema = z.object({
   severity: z.enum(SEVERITIES),
@@ -118,6 +145,10 @@ export interface DriftReport {
    * Absent on reports made before 2026-11-27, where the model chose each page score itself.
    */
   scoreMethod?: "findings";
+  /** "consistency" when pages were checked against the homepage instead of a document. Absent means a positioning scan. */
+  mode?: ScanMode;
+  /** For consistency checks: the page every other page was compared against. It is not scored or listed in pages. */
+  baseline?: { url: string; title: string; chars: number };
   /** SHA-256 of the owner's delete token. Never sent to clients; stripped on export. */
   ownerTokenHash?: string;
 }
@@ -127,6 +158,7 @@ export type ScanEvent =
   | { type: "start"; pages: number }
   | { type: "fetch:start"; url: string }
   | { type: "fetch:done"; url: string; status: number; chars: number; title: string; error: string | null }
+  | { type: "baseline"; url: string }
   | { type: "analyze:start"; url: string }
   | { type: "analyze:done"; url: string; score: number; findings: number }
   | { type: "summary:start" }

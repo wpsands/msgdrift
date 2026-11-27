@@ -8,7 +8,7 @@ import { scoreBand } from "@/lib/engine/scoring";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SAMPLE_POSITIONING, SAMPLE_POSITIONING_LABEL } from "@/data/sample-positioning";
 import type { DiscoveryResult, SuggestedPage } from "@/lib/engine/discover";
-import { IMPORTANCES, LIMITS, type PageImportance, type ScanEvent } from "@/lib/engine/schema";
+import { IMPORTANCES, LIMITS, type PageImportance, type ScanEvent, type ScanMode } from "@/lib/engine/schema";
 
 interface PageRow extends SuggestedPage {
   key: string;
@@ -19,6 +19,7 @@ interface PageProgress {
   url: string;
   fetch?: { status: number; chars: number; title: string; error: string | null };
   analyzing?: boolean;
+  baseline?: boolean;
   analysis?: { score: number; findings: number };
 }
 
@@ -33,9 +34,6 @@ export function ScanForm() {
   const [docLabel, setDocLabel] = useState("positioning.md");
   const [site, setSite] = useState("");
   const [discovering, setDiscovering] = useState(false);
-  const [showDraft, setShowDraft] = useState(false);
-  const [drafting, setDrafting] = useState(false);
-  const [draftedFrom, setDraftedFrom] = useState<string[] | null>(null);
   const [discovery, setDiscovery] = useState<DiscoveryResult | null>(null);
   const [rows, setRows] = useState<PageRow[]>([]);
   const [manualUrl, setManualUrl] = useState("");
@@ -78,7 +76,11 @@ export function ScanForm() {
   }, [doc, docLabel, site]);
 
   const docChars = doc.length;
-  const docOk = docChars >= LIMITS.minSourceChars && docChars <= LIMITS.maxSourceChars;
+  // An empty document means a consistency check: other pages are read against the homepage.
+  const docEmpty = doc.trim().length === 0;
+  const mode: ScanMode = docEmpty ? "consistency" : "positioning";
+  const docOk = docEmpty || (docChars >= LIMITS.minSourceChars && docChars <= LIMITS.maxSourceChars);
+  const minPages = mode === "consistency" ? 2 : 1;
   const selected = useMemo(() => rows.filter((r) => r.selected), [rows]);
   const locked = phase === "running" || phase === "done";
 
@@ -90,37 +92,9 @@ export function ScanForm() {
     const text = await file.text();
     setDoc(text.slice(0, LIMITS.maxSourceChars));
     setDocLabel(file.name);
-    setDraftedFrom(null);
+   
     setError(null);
   }, []);
-
-  async function draftFromSite() {
-    setError(null);
-    setDrafting(true);
-    setDraftedFrom(null);
-    track("draft_requested");
-    try {
-      const res = await fetch("/api/draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ site }),
-      });
-      const data = (await res.json()) as { document?: string; label?: string; pagesRead?: string[]; error?: string };
-      if (!res.ok || !data.document) {
-        track("draft_failed", { status: res.status });
-        throw new Error(data.error ?? "Could not draft a document from that site.");
-      }
-      setDoc(data.document);
-      setDocLabel(data.label ?? "draft.txt");
-      setDraftedFrom(data.pagesRead ?? []);
-      setShowDraft(false);
-      track("draft_generated", { pages_read: data.pagesRead?.length ?? 0, doc_chars: roughChars(data.document.length) });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not draft a document from that site.");
-    } finally {
-      setDrafting(false);
-    }
-  }
 
   async function discover() {
     setError(null);
@@ -171,11 +145,11 @@ export function ScanForm() {
   async function run() {
     setError(null);
     if (!docOk) {
-      setError(`Your positioning document needs between ${LIMITS.minSourceChars} and ${LIMITS.maxSourceChars} characters.`);
+      setError(`Your positioning document needs between ${LIMITS.minSourceChars} and ${LIMITS.maxSourceChars} characters, or leave it empty to check your pages against your homepage.`);
       return;
     }
-    if (selected.length === 0) {
-      setError("Select at least one page.");
+    if (selected.length < minPages) {
+      setError(mode === "consistency" ? "Without a document, select your homepage and at least one other page." : "Select at least one page.");
       return;
     }
     if (selected.length > LIMITS.maxPages) {
@@ -184,7 +158,7 @@ export function ScanForm() {
     }
     setPhase("running");
     setStage("Starting");
-    track("scan_started", { pages: selected.length, doc_chars: roughChars(doc.length), used_sample: doc === SAMPLE_POSITIONING });
+    track("scan_started", { pages: selected.length, doc_chars: roughChars(doc.length), used_sample: doc === SAMPLE_POSITIONING, mode });
     startedAtRef.current = startTimer();
     const initial: Record<string, PageProgress> = {};
     for (const r of selected) initial[r.url] = { url: r.url };
@@ -198,8 +172,8 @@ export function ScanForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sourceDocument: doc,
-          sourceLabel: docLabel,
+          mode,
+          ...(mode === "positioning" ? { sourceDocument: doc, sourceLabel: docLabel } : {}),
           pages: selected.map((r) => ({ url: r.url, importance: r.importance, label: r.label })),
         }),
         signal: controller.signal,
@@ -249,8 +223,11 @@ export function ScanForm() {
       case "fetch:done":
         setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, fetch: { status: event.status, chars: event.chars, title: event.title, error: event.error } } }));
         break;
+      case "baseline":
+        setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, baseline: true } }));
+        break;
       case "analyze:start":
-        setStage("Comparing pages with your positioning");
+        setStage(mode === "consistency" ? "Checking pages against your homepage" : "Comparing pages with your positioning");
         setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, analyzing: true } }));
         break;
       case "analyze:done":
@@ -296,11 +273,15 @@ export function ScanForm() {
     <div className="mt-16">
       {/* Step 1 */}
       <section className="rule-strong grid-12 gap-y-6 pt-6 pb-14">
-        <StepLabel n="01" title="Your positioning document" done={docOk} />
+        <StepLabel n="01" title="Your positioning document" done={docOk && !docEmpty} />
         <div className="col-span-12 lg:col-span-8 lg:col-start-5">
           <p className="text-[15px] leading-relaxed text-ink-2">
             A messaging guide, positioning document, brand voice, or strategy memo. Markdown or plain text, up to{" "}
             {LIMITS.maxSourceChars.toLocaleString()} characters.
+          </p>
+          <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
+            No document? Leave this empty. msgdrift will use your homepage as the reference and check your other pages for
+            statements that conflict with it: different claims, numbers, product names, or buyers.
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
             Your document is read once and not saved. The report keeps only the sentences it quotes, and you can delete the
@@ -329,58 +310,13 @@ export function ScanForm() {
           <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
             <input ref={fileRef} type="file" accept=".md,.txt,.markdown,text/plain,text/markdown" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.currentTarget.value = ""; }} />
             <button type="button" onClick={() => fileRef.current?.click()} disabled={locked} className="link disabled:opacity-40">Upload a .md or .txt file</button>
-            <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setDraftedFrom(null); setError(null); track("sample_loaded"); }} disabled={locked} className="link disabled:opacity-40">
+            <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setError(null); track("sample_loaded"); }} disabled={locked} className="link disabled:opacity-40">
               Use the sample document
-            </button>
-            <button type="button" onClick={() => setShowDraft((v) => !v)} disabled={locked || drafting} aria-expanded={showDraft} className="link disabled:opacity-40">
-              No document? Draft one from your site
             </button>
             <span className={`ml-auto font-mono text-xs ${docChars > LIMITS.maxSourceChars * 0.95 ? "text-blue" : "text-muted"}`}>
               {docChars.toLocaleString()} / {LIMITS.maxSourceChars.toLocaleString()}
             </span>
           </div>
-
-          {showDraft && !locked && (
-            <form
-              className="mt-6 border-l-2 border-blue pl-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void draftFromSite();
-              }}
-            >
-              <p className="text-[15px] leading-relaxed text-ink-2">
-                msgdrift reads your homepage and up to two pages such as About or Product, then writes a draft of what they say:
-                positioning, audience, value propositions, proof points, and tone. It replaces the text above. Takes about 30 seconds.
-              </p>
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
-                <div className="flex-1">
-                  <label htmlFor="draft-site" className="label">Website</label>
-                  <input
-                    id="draft-site"
-                    type="text"
-                    inputMode="url"
-                    autoComplete="url"
-                    value={site}
-                    onChange={(e) => setSite(e.target.value)}
-                    disabled={drafting}
-                    placeholder="yourcompany.com"
-                    className="field mt-1 font-mono text-[15px]"
-                  />
-                </div>
-                <button type="submit" disabled={drafting || !site.trim()} className="btn btn-ghost">
-                  {drafting ? "Drafting" : "Draft document"}
-                </button>
-              </div>
-            </form>
-          )}
-
-          {draftedFrom && doc && (
-            <p className="mt-4 border-l-2 border-blue pl-4 text-sm leading-relaxed text-ink-2">
-              Drafted from {draftedFrom.length === 1 ? "your homepage" : `${draftedFrom.length} of your pages`}. Edit it to say what you
-              intend, especially the audience and what you do not do. Unedited, a scan checks whether your other pages agree with these
-              pages, which is useful but is a weaker test than your own strategy.
-            </p>
-          )}
         </div>
       </section>
 
@@ -527,14 +463,18 @@ export function ScanForm() {
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-              <button type="button" onClick={run} disabled={!docOk || selected.length === 0} className="btn">
-                Run drift scan
+              <button type="button" onClick={run} disabled={!docOk || selected.length < minPages} className="btn">
+                {mode === "consistency" ? "Run consistency check" : "Run drift scan"}
               </button>
               <p className="text-sm text-muted">
                 {!docOk
-                  ? `Add your positioning document first (${LIMITS.minSourceChars} characters minimum).`
-                  : selected.length === 0
-                    ? "Choose the pages to read."
+                  ? `Your document needs at least ${LIMITS.minSourceChars} characters, or clear it to check against your homepage.`
+                  : selected.length < minPages
+                    ? mode === "consistency"
+                      ? "Choose your homepage and at least one other page."
+                      : "Choose the pages to read."
+                    : mode === "consistency"
+                      ? `No document, so the homepage is the reference and ${selected.length - 1} page${selected.length === 2 ? "" : "s"} will be checked against it.`
                     : `${selected.length} page${selected.length === 1 ? "" : "s"}, about ${Math.max(1, Math.ceil(selected.length / 3) * 30 + 20)} seconds.`}
               </p>
             </div>
@@ -561,6 +501,7 @@ function StepLabel({ n, title, done }: { n: string; title: string; done: boolean
 function ProgressCell({ prog, selected }: { prog?: PageProgress; selected: boolean }) {
   if (!selected) return <span className="font-mono text-xs text-muted">skipped</span>;
   if (!prog?.fetch) return <span className="progress-pulse font-mono text-xs text-muted">reading</span>;
+  if (prog.baseline) return <span className="font-mono text-xs text-ink">reference</span>;
   if (prog.fetch.error) {
     return <span className="font-mono text-xs text-ink" title={prog.fetch.error}>{prog.fetch.error.length > 28 ? `${prog.fetch.error.slice(0, 28)}…` : prog.fetch.error}</span>;
   }

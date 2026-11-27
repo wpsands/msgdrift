@@ -30,6 +30,10 @@ export default function PrivacyPage() {
           else from the document is kept.
         </p>
         <p>
+          If you leave the document empty, no document is involved. The scan compares your other pages with your homepage,
+          and the report quotes sentences from both.
+        </p>
+        <p>
           While you are filling in the form, an unsent draft is kept in your own browser&apos;s local storage so a refresh does
           not lose it. It is removed when the scan completes. It never leaves your browser.
         </p>
@@ -46,14 +50,6 @@ export default function PrivacyPage() {
           If a page comes back nearly empty or blocked, which happens when a site draws its copy with JavaScript, msgdrift asks
           Firecrawl to load it in a browser and return the text. Firecrawl receives only the public page address. It never
           receives your positioning document.
-        </p>
-      </Section>
-
-      <Section title="Drafted documents">
-        <p>
-          If you ask msgdrift to draft a positioning document from your site, it reads your homepage and up to two other public
-          pages and sends their text to the model to write the draft. The draft goes back to your browser and is not stored.
-          From there it is treated like any document you paste.
         </p>
       </Section>
 

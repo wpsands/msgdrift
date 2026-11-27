@@ -34,7 +34,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <OgWordmark />
-          <span style={{ fontSize: 22, color: OG_COLORS.muted, letterSpacing: 2, textTransform: "uppercase" }}>Drift report</span>
+          <span style={{ fontSize: 22, color: OG_COLORS.muted, letterSpacing: 2, textTransform: "uppercase" }}>{report?.mode === "consistency" ? "Consistency report" : "Drift report"}</span>
         </div>
 
         {report && score !== null ? (

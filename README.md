@@ -24,7 +24,7 @@ See real reports at [msgdrift.com/example](https://msgdrift.com/example): HubSpo
 
 ## How it works
 
-1. **Source document.** You paste a positioning doc, messaging guide, or strategy memo (200 to 20,000 characters). It is used for the scan and stored only inside the resulting report. Without one, msgdrift can draft a document from the site's homepage and up to two pages such as About or Product, which the visitor edits before scanning.
+1. **Source document.** You paste a positioning doc, messaging guide, or strategy memo (200 to 20,000 characters). It is used for the scan and stored only inside the resulting report. Without one, the scan runs as a consistency check: the homepage is the reference, every other page is compared with it, and only conflicts are reported (contradictions, the same claim with different facts, a different buyer, undercutting framing). Omissions are not reported, and the homepage is not scored.
 2. **Page discovery.** You enter a domain. The crawler fetches the homepage, collects internal links, and ranks likely messaging pages (pricing, product, solutions, about, customers) with a weight for each. You edit the list, up to 6 pages.
 3. **Crawl.** Each page is fetched once with a plain HTTP request. Scripts, styles, navigation, footers, cookie banners, and similar chrome are stripped; the copy a reader sees is kept, capped at 15,000 characters per page. Private, loopback, and link-local addresses are refused. Redirects are followed by hand, at most five, and each hop is checked before it is requested. A page that comes back with under 200 characters or blocked (401, 403, 429, 503) is fetched again through Firecrawl when `FIRECRAWL_API_KEY` is set.
 4. **Analysis.** Each page is sent to Claude with the source document and a prompt that defines drift versus acceptable adaptation. The model returns structured output that is validated against a schema before anything renders.
@@ -75,7 +75,6 @@ pnpm build
 | `SCAN_LIMIT_IP_HOURLY`, `SCAN_LIMIT_IP_DAILY`, `SCAN_LIMIT_GLOBAL_DAILY` | Defaults 3, 10, 200. |
 | `NEXT_PUBLIC_POSTHOG_KEY` (or `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`), `NEXT_PUBLIC_POSTHOG_UI_HOST` | Optional. PostHog project key for cookieless usage analytics, proxied through `/ingest`. Unset means no analytics. See `src/instrumentation-client.ts`. |
 | `FIRECRAWL_API_KEY` | Optional. Browser-rendered fallback for pages that come back thin or blocked (JavaScript-drawn copy, bot walls). Unset means plain fetch only. |
-| `DRAFT_LIMIT_IP_HOURLY`, `DRAFT_LIMIT_GLOBAL_DAILY` | Limits for drafting a positioning document from a site. Defaults 5, 100. |
 | `RATE_LIMIT_SALT` | Secret mixed into the visitor hash used for rate-limit keys. Addresses are never stored. |
 | `SCAN_ZDR` | Zero data retention on the gateway provider path. Default on; `0` disables. |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin for share links and metadata. |
