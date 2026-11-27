@@ -1,4 +1,5 @@
 import posthog from "posthog-js";
+import { resolveInternalFlag } from "@/lib/internal-flag";
 
 /**
  * PostHog, configured for a tool whose visitors paste confidential documents:
@@ -12,9 +13,9 @@ import posthog from "posthog-js";
  *
  * Same conventions as newlogogrowth.ai where they add no data collection:
  * every event carries site: "msgdrift", automated browsers send nothing, and
- * ?internal=1 marks a visit as internal traffic. Cookieless mode stores
- * nothing in the browser, so the internal flag lasts for that page load
- * (including in-app navigation) and has to be added again on a new visit.
+ * ?internal=1 marks a browser as internal traffic until ?internal=0. Cookieless
+ * mode stores nothing, so that one mark lives in localStorage, and only in
+ * browsers that opted in (see src/lib/internal-flag.ts).
  */
 const key = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
@@ -22,11 +23,13 @@ const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
 const automated = typeof navigator === "undefined" || navigator.webdriver || ua.includes("HeadlessChrome");
 
 function internalFlag(): boolean {
+  let storage: Storage | null = null;
   try {
-    return new URLSearchParams(window.location.search).get("internal") === "1";
+    storage = window.localStorage;
   } catch {
-    return false;
+    storage = null;
   }
+  return resolveInternalFlag(window.location.search, storage);
 }
 
 const REPORT_ID = /\/r\/[a-z0-9]+/gi;
