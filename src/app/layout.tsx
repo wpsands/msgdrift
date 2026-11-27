@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     default: `${SITE_NAME}: find the pages still selling the old story`,
     template: `%s · ${SITE_NAME}`,
   },
-  description: `${SITE_TAGLINE} Paste your positioning document, point msgdrift at your site, and get a line-by-line drift report. Free, no login.`,
+  description: `${SITE_TAGLINE} Check your site against your positioning document, or against your own homepage, and get a line-by-line drift report. Free, no login.`,
   openGraph: { siteName: SITE_NAME, type: "website" },
   twitter: { card: "summary_large_image" },
 };

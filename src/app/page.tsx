@@ -3,6 +3,7 @@ import { ScoreInline } from "@/components/score-ring";
 import { SeverityMark, severityMeta } from "@/components/severity-badge";
 import { EXAMPLES } from "@/lib/example";
 import { SEVERITIES } from "@/lib/engine/schema";
+import { SEVERITY_PENALTY } from "@/lib/engine/scoring";
 
 export default function Home() {
   const featured = EXAMPLES[0];
@@ -24,8 +25,9 @@ export default function Home() {
           </div>
           <div className="on-paper col-span-12 lg:col-span-4 lg:col-start-9 lg:pt-14">
             <p className="text-[17px] leading-relaxed text-ink-2">
-              Paste the document that defines your positioning. msgdrift reads your live pages and shows you, sentence by sentence,
-              where the copy contradicts it, dilutes it, or leaves it out. You get a report you can send to whoever owns the page.
+              msgdrift reads your live pages and shows you, sentence by sentence, where the copy has drifted. Paste your positioning
+              document and it finds where pages contradict it, dilute it, or leave it out. No document? It checks your other pages
+              against your homepage and finds where they disagree. You get a report you can send to whoever owns the page.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
               <Link href="/scan" className="btn">Scan a site</Link>
@@ -42,8 +44,9 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-3">
             <p className="label">What a finding looks like</p>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
-              Every finding quotes both sides. The page&apos;s sentence, the sentence in the positioning it drifts from, and a note on
-              why it matters. You can disagree with it, line by line.
+              Every finding quotes both sides: the page&apos;s sentence, the sentence it drifts from, and a note on why it matters.
+              The second quote comes from your positioning document, or from your homepage when you scan without one. You can
+              disagree with any finding, line by line.
             </p>
           </div>
           <div className="col-span-12 lg:col-span-8 lg:col-start-5">
@@ -75,9 +78,9 @@ export default function Home() {
             <p className="col-span-12 text-[17px] leading-relaxed text-ink-2 lg:col-span-4 lg:col-start-9 lg:pt-2">Three steps. A six-page scan finishes in about two minutes.</p>
           </div>
           <ol className="grid-12 mt-14 gap-y-12">
-            <Step n="01" title="Paste your positioning document" body="Your positioning document, messaging guide, or the strategy memo everyone agreed on. Markdown or plain text, up to 20,000 characters. It is used for the scan and kept only inside the report." />
+            <Step n="01" title="Add a document, or skip it" body="Paste a positioning document, messaging guide, or the strategy memo everyone agreed on, up to 20,000 characters, and every page is checked against it. Leave it empty and your homepage becomes the reference: other pages are checked for claims, numbers, product names, and buyers that conflict with it." />
             <Step n="02" title="Choose the pages" body="Enter your domain. msgdrift reads the homepage, proposes the pages that carry positioning, such as pricing, product, and about, and lets you weight each one. Up to six per scan." />
-            <Step n="03" title="Read the report" body="Findings arrive as the pages are read. Each one quotes the page and the positioning side by side, with a severity and a plain note on the business impact. Share the link, or download it as markdown." />
+            <Step n="03" title="Read the report" body="Findings arrive as the pages are read. Each one quotes the page next to the sentence it drifts from, with a severity and a plain note on the business impact. Share the link, or download it as markdown." />
           </ol>
         </div>
       </section>
@@ -158,9 +161,16 @@ export default function Home() {
               <Link href="/method" className="link">Full method</Link>.
             </dd>
             <dt className="label mt-5">Page fetching</dt>
-            <dd className="mt-2 text-ink-2">One plain fetch per page. Navigation and chrome stripped. No scripts run.</dd>
+            <dd className="mt-2 text-ink-2">
+              One plain fetch per page, with navigation and other chrome stripped. A page that comes back nearly empty or blocked
+              is loaded again in a browser.
+            </dd>
             <dt className="label mt-5">Scoring</dt>
-            <dd className="mt-2 text-ink-2">Per page, 0 to 100. Weighted by importance: high 3x, medium 2x, low 1x.</dd>
+            <dd className="mt-2 text-ink-2">
+              Each page starts at 100 and loses {SEVERITY_PENALTY.critical} points per critical finding, {SEVERITY_PENALTY.major} per
+              major, {SEVERITY_PENALTY.minor} per minor, and {SEVERITY_PENALTY.info} per info. The overall score weights pages by
+              importance: high 3x, medium 2x, low 1x.
+            </dd>
             <dt className="label mt-5">Source code</dt>
             <dd className="mt-2"><a href="https://github.com/wpsands/msgdrift" className="link" target="_blank" rel="noopener noreferrer">github.com/wpsands/msgdrift</a></dd>
           </dl>
