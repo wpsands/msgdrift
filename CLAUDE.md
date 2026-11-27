@@ -23,7 +23,10 @@ A Next.js 16 web app (App Router, TypeScript, Tailwind v4) that detects semantic
 - Voice: no em or en dashes in user-facing copy, no "not X, it's Y" constructions, no agency vocabulary. Claims carry numbers or examples.
 - Design: a writer's tool. White page only (no dark mode), IBM Plex Sans for UI and headlines, Plex Serif for quoted copy, Plex Mono for small labels. Layout on the 12-column `grid-12` with hairline rules, never cards, shadows, gradients, rings, icons, or animation beyond the progress pulse. One blue (`--blue`) for anything interactive or editorial; yellow (`.mark`) only to highlight a phrase. Tokens and primitives live in `src/app/globals.css`.
 - Status and severity are never color alone. Severity marks carry a glyph and the word; scores carry the band name.
-- URLs from visitors go through `normalizeSiteUrl` and `assertPublicHost`. Do not add a fetch path that skips them.
+- URLs from visitors go through `normalizeSiteUrl` and `assertPublicHost`. Do not add a fetch path that skips them. `plainFetch` follows redirects with `redirect: "manual"` and checks every hop; never switch it back to `redirect: "follow"`, which requests internal hops before they can be checked.
+- Page scores come from `scoreFromFindings` (100 minus `SEVERITY_PENALTY` per finding), not from the model. The model is not asked for a score. Reports with `scoreMethod: "findings"` use this; older reports and the two examples carry model-chosen scores. The Python CLI still uses model scores.
+- `FIRECRAWL_API_KEY` enables the rendered fallback in `fetchPage` for thin or blocked pages. Only the public page URL goes to Firecrawl, never the positioning document. Without the key, behavior is the plain fetch alone.
+- `/api/draft` drafts a positioning document from the homepage plus up to two pages (`src/lib/engine/draft.ts`). It has its own rate limits (`checkDraftAllowed`) because it costs a model call.
 - Tests: `pnpm test` (vitest), `pnpm typecheck`, `pnpm lint`, `pnpm build` must all pass before a commit. Bug fixes add a test.
 - pnpm installs require `minimumReleaseAge: 1440` (set in `pnpm-workspace.yaml`).
 

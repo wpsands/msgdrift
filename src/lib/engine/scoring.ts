@@ -1,4 +1,4 @@
-import { IMPORTANCE_WEIGHT, type PageAnalysis, type SeverityCounts } from "./schema";
+import { IMPORTANCE_WEIGHT, type DriftFinding, type PageAnalysis, type SeverityCounts } from "./schema";
 
 type Scorable = Pick<PageAnalysis, "alignmentScore" | "importance"> & Partial<Pick<PageAnalysis, "error" | "charsAnalyzed">>;
 
@@ -24,6 +24,24 @@ export function computeOverallScore(pages: Scorable[]): number {
   }
   if (totalWeight === 0) return 0;
   return Math.round((weighted / totalWeight) * 10) / 10;
+}
+
+/**
+ * Points a page loses per finding. The page score is 100 minus these, floored at 0.
+ * Fitted so the twelve example pages land within a few points of the model's own
+ * scores on average, while two pages with the same findings always get the same score.
+ */
+export const SEVERITY_PENALTY: Record<DriftFinding["severity"], number> = {
+  critical: 20,
+  major: 8,
+  minor: 3,
+  info: 1,
+};
+
+/** Page score from its findings. Deterministic: same findings, same score. */
+export function scoreFromFindings(findings: Pick<DriftFinding, "severity">[]): number {
+  const lost = findings.reduce((sum, f) => sum + SEVERITY_PENALTY[f.severity], 0);
+  return Math.max(0, 100 - lost);
 }
 
 export function computeCounts(pages: Pick<PageAnalysis, "findings">[]): SeverityCounts {

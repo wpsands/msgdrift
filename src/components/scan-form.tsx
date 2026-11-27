@@ -33,6 +33,9 @@ export function ScanForm() {
   const [docLabel, setDocLabel] = useState("positioning.md");
   const [site, setSite] = useState("");
   const [discovering, setDiscovering] = useState(false);
+  const [showDraft, setShowDraft] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const [draftedFrom, setDraftedFrom] = useState<string[] | null>(null);
   const [discovery, setDiscovery] = useState<DiscoveryResult | null>(null);
   const [rows, setRows] = useState<PageRow[]>([]);
   const [manualUrl, setManualUrl] = useState("");
@@ -87,8 +90,37 @@ export function ScanForm() {
     const text = await file.text();
     setDoc(text.slice(0, LIMITS.maxSourceChars));
     setDocLabel(file.name);
+    setDraftedFrom(null);
     setError(null);
   }, []);
+
+  async function draftFromSite() {
+    setError(null);
+    setDrafting(true);
+    setDraftedFrom(null);
+    track("draft_requested");
+    try {
+      const res = await fetch("/api/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ site }),
+      });
+      const data = (await res.json()) as { document?: string; label?: string; pagesRead?: string[]; error?: string };
+      if (!res.ok || !data.document) {
+        track("draft_failed", { status: res.status });
+        throw new Error(data.error ?? "Could not draft a document from that site.");
+      }
+      setDoc(data.document);
+      setDocLabel(data.label ?? "draft.txt");
+      setDraftedFrom(data.pagesRead ?? []);
+      setShowDraft(false);
+      track("draft_generated", { pages_read: data.pagesRead?.length ?? 0, doc_chars: roughChars(data.document.length) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not draft a document from that site.");
+    } finally {
+      setDrafting(false);
+    }
+  }
 
   async function discover() {
     setError(null);
@@ -297,13 +329,58 @@ export function ScanForm() {
           <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
             <input ref={fileRef} type="file" accept=".md,.txt,.markdown,text/plain,text/markdown" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.currentTarget.value = ""; }} />
             <button type="button" onClick={() => fileRef.current?.click()} disabled={locked} className="link disabled:opacity-40">Upload a .md or .txt file</button>
-            <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setError(null); track("sample_loaded"); }} disabled={locked} className="link disabled:opacity-40">
+            <button type="button" onClick={() => { setDoc(SAMPLE_POSITIONING); setDocLabel(SAMPLE_POSITIONING_LABEL); setDraftedFrom(null); setError(null); track("sample_loaded"); }} disabled={locked} className="link disabled:opacity-40">
               Use the sample document
+            </button>
+            <button type="button" onClick={() => setShowDraft((v) => !v)} disabled={locked || drafting} aria-expanded={showDraft} className="link disabled:opacity-40">
+              No document? Draft one from your site
             </button>
             <span className={`ml-auto font-mono text-xs ${docChars > LIMITS.maxSourceChars * 0.95 ? "text-blue" : "text-muted"}`}>
               {docChars.toLocaleString()} / {LIMITS.maxSourceChars.toLocaleString()}
             </span>
           </div>
+
+          {showDraft && !locked && (
+            <form
+              className="mt-6 border-l-2 border-blue pl-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void draftFromSite();
+              }}
+            >
+              <p className="text-[15px] leading-relaxed text-ink-2">
+                msgdrift reads your homepage and up to two pages such as About or Product, then writes a draft of what they say:
+                positioning, audience, value propositions, proof points, and tone. It replaces the text above. Takes about 30 seconds.
+              </p>
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+                <div className="flex-1">
+                  <label htmlFor="draft-site" className="label">Website</label>
+                  <input
+                    id="draft-site"
+                    type="text"
+                    inputMode="url"
+                    autoComplete="url"
+                    value={site}
+                    onChange={(e) => setSite(e.target.value)}
+                    disabled={drafting}
+                    placeholder="yourcompany.com"
+                    className="field mt-1 font-mono text-[15px]"
+                  />
+                </div>
+                <button type="submit" disabled={drafting || !site.trim()} className="btn btn-ghost">
+                  {drafting ? "Drafting" : "Draft document"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {draftedFrom && doc && (
+            <p className="mt-4 border-l-2 border-blue pl-4 text-sm leading-relaxed text-ink-2">
+              Drafted from {draftedFrom.length === 1 ? "your homepage" : `${draftedFrom.length} of your pages`}. Edit it to say what you
+              intend, especially the audience and what you do not do. Unedited, a scan checks whether your other pages agree with these
+              pages, which is useful but is a weaker test than your own strategy.
+            </p>
+          )}
         </div>
       </section>
 

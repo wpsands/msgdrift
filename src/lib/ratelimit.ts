@@ -76,7 +76,22 @@ export const SCAN_LIMITS = {
   perIpDaily: Number(process.env.SCAN_LIMIT_IP_DAILY ?? 10),
   globalDaily: Number(process.env.SCAN_LIMIT_GLOBAL_DAILY ?? 200),
   discoverHourly: Number(process.env.DISCOVER_LIMIT_IP_HOURLY ?? 30),
+  draftHourly: Number(process.env.DRAFT_LIMIT_IP_HOURLY ?? 5),
+  draftGlobalDaily: Number(process.env.DRAFT_LIMIT_GLOBAL_DAILY ?? 100),
 };
+
+/** Drafting costs one model call, so it gets its own, tighter budget. */
+export async function checkDraftAllowed(visitor: string): Promise<{ blocked: false } | { blocked: true; message: string; retryAfterSeconds: number }> {
+  const l = getLimiter();
+  const checks = [
+    { r: await l.check(`draft:v:hour:${visitor}`, SCAN_LIMITS.draftHourly, 60 * 60, "draft-hourly"), message: `You have drafted ${SCAN_LIMITS.draftHourly} documents this hour. Edit the one you have, or try again later.` },
+    { r: await l.check("draft:global:day", SCAN_LIMITS.draftGlobalDaily, 60 * 60 * 24, "draft-global"), message: "msgdrift has hit its daily drafting budget. Paste your own document, or try again tomorrow." },
+  ];
+  for (const { r, message } of checks) {
+    if (!r.ok) return { blocked: true, message, retryAfterSeconds: Math.max(1, Math.ceil((r.resetAt - Date.now()) / 1000)) };
+  }
+  return { blocked: false };
+}
 
 function rawClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");

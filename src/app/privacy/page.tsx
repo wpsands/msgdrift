@@ -39,8 +39,21 @@ export default function PrivacyPage() {
         <p>
           Each page you list is fetched once with a plain HTTP request from our server, identified as{" "}
           <span className="font-mono text-[15px]">msgdrift/1.0</span>. Scripts are not run, nothing is logged in, and only public
-          hosts are fetched. The page text is used for the scan and discarded. Findings quote the sentence from the page that
-          drifted.
+          hosts are fetched, checked again at every redirect. The page text is used for the scan and discarded. Findings quote
+          the sentence from the page that drifted.
+        </p>
+        <p>
+          If a page comes back nearly empty or blocked, which happens when a site draws its copy with JavaScript, msgdrift asks
+          Firecrawl to load it in a browser and return the text. Firecrawl receives only the public page address. It never
+          receives your positioning document.
+        </p>
+      </Section>
+
+      <Section title="Drafted documents">
+        <p>
+          If you ask msgdrift to draft a positioning document from your site, it reads your homepage and up to two other public
+          pages and sends their text to the model to write the draft. The draft goes back to your browser and is not stored.
+          From there it is treated like any document you paste.
         </p>
       </Section>
 

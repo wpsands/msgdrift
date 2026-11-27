@@ -68,7 +68,6 @@ export type DriftFinding = z.infer<typeof driftFindingSchema>;
 export const pageAnalysisOutputSchema = z.object({
   findings: z.array(driftFindingSchema),
   summary: z.string().describe("2-3 sentence summary of the page's overall messaging alignment"),
-  alignmentScore: z.number().min(0).max(100).describe("0 = completely off-message, 100 = perfectly aligned"),
 });
 export type PageAnalysisOutput = z.infer<typeof pageAnalysisOutputSchema>;
 
@@ -114,6 +113,11 @@ export interface DriftReport {
   executiveSummary: string;
   counts: SeverityCounts;
   durationMs: number;
+  /**
+   * How page scores were set. "findings": 100 minus a fixed penalty per finding (SEVERITY_PENALTY).
+   * Absent on reports made before 2026-11-27, where the model chose each page score itself.
+   */
+  scoreMethod?: "findings";
   /** SHA-256 of the owner's delete token. Never sent to clients; stripped on export. */
   ownerTokenHash?: string;
 }

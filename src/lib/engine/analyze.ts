@@ -11,7 +11,7 @@ import {
   type ScanEvent,
   type ScanRequest,
 } from "./schema";
-import { clampScore, computeCounts, computeOverallScore } from "./scoring";
+import { computeCounts, computeOverallScore, scoreFromFindings } from "./scoring";
 
 /**
  * Scan orchestration. Mirrors run_analysis in cli/src/msgdrift/agent.py:
@@ -96,6 +96,7 @@ export async function runScan(request: ScanRequest, options: RunScanOptions): Pr
     executiveSummary,
     counts: computeCounts(analyses),
     durationMs: Date.now() - started,
+    scoreMethod: "findings",
   };
   return report;
 }
@@ -167,7 +168,7 @@ export async function analyzePage({ page, content, sourceContent, model, signal 
       ...base,
       findings,
       summary: output.summary.trim(),
-      alignmentScore: clampScore(output.alignmentScore),
+      alignmentScore: scoreFromFindings(findings),
       charsAnalyzed: pageText.length,
     };
   } catch (err) {
