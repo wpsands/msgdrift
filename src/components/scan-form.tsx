@@ -8,7 +8,7 @@ import { scoreBand } from "@/lib/engine/scoring";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SAMPLE_POSITIONING, SAMPLE_POSITIONING_LABEL } from "@/data/sample-positioning";
 import type { DiscoveryResult, SuggestedPage } from "@/lib/engine/discover";
-import { IMPORTANCES, LIMITS, type PageImportance, type ScanEvent } from "@/lib/engine/schema";
+import { IMPORTANCES, LIMITS, type PageImportance, type ScanEvent, type ScanMode } from "@/lib/engine/schema";
 
 interface PageRow extends SuggestedPage {
   key: string;
@@ -19,6 +19,7 @@ interface PageProgress {
   url: string;
   fetch?: { status: number; chars: number; title: string; error: string | null };
   analyzing?: boolean;
+  baseline?: boolean;
   analysis?: { score: number; findings: number };
 }
 
@@ -75,7 +76,11 @@ export function ScanForm() {
   }, [doc, docLabel, site]);
 
   const docChars = doc.length;
-  const docOk = docChars >= LIMITS.minSourceChars && docChars <= LIMITS.maxSourceChars;
+  // An empty document means a consistency check: other pages are read against the homepage.
+  const docEmpty = doc.trim().length === 0;
+  const mode: ScanMode = docEmpty ? "consistency" : "positioning";
+  const docOk = docEmpty || (docChars >= LIMITS.minSourceChars && docChars <= LIMITS.maxSourceChars);
+  const minPages = mode === "consistency" ? 2 : 1;
   const selected = useMemo(() => rows.filter((r) => r.selected), [rows]);
   const locked = phase === "running" || phase === "done";
 
@@ -87,6 +92,7 @@ export function ScanForm() {
     const text = await file.text();
     setDoc(text.slice(0, LIMITS.maxSourceChars));
     setDocLabel(file.name);
+   
     setError(null);
   }, []);
 
@@ -139,11 +145,11 @@ export function ScanForm() {
   async function run() {
     setError(null);
     if (!docOk) {
-      setError(`Your positioning document needs between ${LIMITS.minSourceChars} and ${LIMITS.maxSourceChars} characters.`);
+      setError(`Your positioning document needs between ${LIMITS.minSourceChars} and ${LIMITS.maxSourceChars} characters, or leave it empty to check your pages against your homepage.`);
       return;
     }
-    if (selected.length === 0) {
-      setError("Select at least one page.");
+    if (selected.length < minPages) {
+      setError(mode === "consistency" ? "Without a document, select your homepage and at least one other page." : "Select at least one page.");
       return;
     }
     if (selected.length > LIMITS.maxPages) {
@@ -152,7 +158,7 @@ export function ScanForm() {
     }
     setPhase("running");
     setStage("Starting");
-    track("scan_started", { pages: selected.length, doc_chars: roughChars(doc.length), used_sample: doc === SAMPLE_POSITIONING });
+    track("scan_started", { pages: selected.length, doc_chars: roughChars(doc.length), used_sample: doc === SAMPLE_POSITIONING, mode });
     startedAtRef.current = startTimer();
     const initial: Record<string, PageProgress> = {};
     for (const r of selected) initial[r.url] = { url: r.url };
@@ -166,8 +172,8 @@ export function ScanForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sourceDocument: doc,
-          sourceLabel: docLabel,
+          mode,
+          ...(mode === "positioning" ? { sourceDocument: doc, sourceLabel: docLabel } : {}),
           pages: selected.map((r) => ({ url: r.url, importance: r.importance, label: r.label })),
         }),
         signal: controller.signal,
@@ -217,8 +223,11 @@ export function ScanForm() {
       case "fetch:done":
         setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, fetch: { status: event.status, chars: event.chars, title: event.title, error: event.error } } }));
         break;
+      case "baseline":
+        setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, baseline: true } }));
+        break;
       case "analyze:start":
-        setStage("Comparing pages with your positioning");
+        setStage(mode === "consistency" ? "Checking pages against your homepage" : "Comparing pages with your positioning");
         setProgress((p) => ({ ...p, [event.url]: { ...p[event.url], url: event.url, analyzing: true } }));
         break;
       case "analyze:done":
@@ -264,11 +273,15 @@ export function ScanForm() {
     <div className="mt-16">
       {/* Step 1 */}
       <section className="rule-strong grid-12 gap-y-6 pt-6 pb-14">
-        <StepLabel n="01" title="Your positioning document" done={docOk} />
+        <StepLabel n="01" title="Your positioning document" done={docOk && !docEmpty} />
         <div className="col-span-12 lg:col-span-8 lg:col-start-5">
           <p className="text-[15px] leading-relaxed text-ink-2">
             A messaging guide, positioning document, brand voice, or strategy memo. Markdown or plain text, up to{" "}
             {LIMITS.maxSourceChars.toLocaleString()} characters.
+          </p>
+          <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
+            No document? Leave this empty. msgdrift will use your homepage as the reference and check your other pages for
+            statements that conflict with it: different claims, numbers, product names, or buyers.
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
             Your document is read once and not saved. The report keeps only the sentences it quotes, and you can delete the
@@ -450,14 +463,18 @@ export function ScanForm() {
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-              <button type="button" onClick={run} disabled={!docOk || selected.length === 0} className="btn">
-                Run drift scan
+              <button type="button" onClick={run} disabled={!docOk || selected.length < minPages} className="btn">
+                {mode === "consistency" ? "Run consistency check" : "Run drift scan"}
               </button>
               <p className="text-sm text-muted">
                 {!docOk
-                  ? `Add your positioning document first (${LIMITS.minSourceChars} characters minimum).`
-                  : selected.length === 0
-                    ? "Choose the pages to read."
+                  ? `Your document needs at least ${LIMITS.minSourceChars} characters, or clear it to check against your homepage.`
+                  : selected.length < minPages
+                    ? mode === "consistency"
+                      ? "Choose your homepage and at least one other page."
+                      : "Choose the pages to read."
+                    : mode === "consistency"
+                      ? `No document, so the homepage is the reference and ${selected.length - 1} page${selected.length === 2 ? "" : "s"} will be checked against it.`
                     : `${selected.length} page${selected.length === 1 ? "" : "s"}, about ${Math.max(1, Math.ceil(selected.length / 3) * 30 + 20)} seconds.`}
               </p>
             </div>
@@ -484,6 +501,7 @@ function StepLabel({ n, title, done }: { n: string; title: string; done: boolean
 function ProgressCell({ prog, selected }: { prog?: PageProgress; selected: boolean }) {
   if (!selected) return <span className="font-mono text-xs text-muted">skipped</span>;
   if (!prog?.fetch) return <span className="progress-pulse font-mono text-xs text-muted">reading</span>;
+  if (prog.baseline) return <span className="font-mono text-xs text-ink">reference</span>;
   if (prog.fetch.error) {
     return <span className="font-mono text-xs text-ink" title={prog.fetch.error}>{prog.fetch.error.length > 28 ? `${prog.fetch.error.slice(0, 28)}…` : prog.fetch.error}</span>;
   }

@@ -1,6 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { clampScore, computeCounts, computeOverallScore, scoreBand } from "./scoring";
+import { clampScore, computeCounts, computeOverallScore, scoreBand, scoreFromFindings } from "./scoring";
 import type { DriftFinding } from "./schema";
+
+describe("scoreFromFindings", () => {
+  const f = (severity: DriftFinding["severity"]): DriftFinding => ({ severity, category: "tone", pageExcerpt: "a", sourceExcerpt: "b", explanation: "c" });
+
+  it("scores a page with no findings at 100", () => {
+    expect(scoreFromFindings([])).toBe(100);
+  });
+
+  it("subtracts a fixed penalty per severity", () => {
+    // 100 - 20 - 8*2 - 3*3 - 1 = 54
+    const findings = [f("critical"), f("major"), f("major"), f("minor"), f("minor"), f("minor"), f("info")];
+    expect(scoreFromFindings(findings)).toBe(54);
+  });
+
+  it("gives the same score for the same findings in any order", () => {
+    const forward = [f("major"), f("minor"), f("info")];
+    const backward = [f("info"), f("minor"), f("major")];
+    expect(scoreFromFindings(forward)).toBe(scoreFromFindings(backward));
+  });
+
+  it("never goes below 0", () => {
+    expect(scoreFromFindings(Array.from({ length: 8 }, () => f("critical")))).toBe(0);
+  });
+});
 
 const finding = (severity: DriftFinding["severity"]): DriftFinding => ({
   severity,

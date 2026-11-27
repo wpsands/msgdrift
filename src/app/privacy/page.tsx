@@ -30,6 +30,10 @@ export default function PrivacyPage() {
           else from the document is kept.
         </p>
         <p>
+          If you leave the document empty, no document is involved. The scan compares your other pages with your homepage,
+          and the report quotes sentences from both.
+        </p>
+        <p>
           While you are filling in the form, an unsent draft is kept in your own browser&apos;s local storage so a refresh does
           not lose it. It is removed when the scan completes. It never leaves your browser.
         </p>
@@ -39,8 +43,13 @@ export default function PrivacyPage() {
         <p>
           Each page you list is fetched once with a plain HTTP request from our server, identified as{" "}
           <span className="font-mono text-[15px]">msgdrift/1.0</span>. Scripts are not run, nothing is logged in, and only public
-          hosts are fetched. The page text is used for the scan and discarded. Findings quote the sentence from the page that
-          drifted.
+          hosts are fetched, checked again at every redirect. The page text is used for the scan and discarded. Findings quote
+          the sentence from the page that drifted.
+        </p>
+        <p>
+          If a page comes back nearly empty or blocked, which happens when a site draws its copy with JavaScript, msgdrift asks
+          Firecrawl to load it in a browser and return the text. Firecrawl receives only the public page address. It never
+          receives your positioning document.
         </p>
       </Section>
 

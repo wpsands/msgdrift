@@ -1,4 +1,4 @@
-import { runScan } from "@/lib/engine/analyze";
+import { runScan, ScanInputError } from "@/lib/engine/analyze";
 import { scanRequestSchema, type ScanEvent } from "@/lib/engine/schema";
 import { normalizeSiteUrl, UnsafeUrlError } from "@/lib/engine/url-safety";
 import { checkScanAllowed, visitorKey } from "@/lib/ratelimit";
@@ -65,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
       } catch (err) {
         const message = err instanceof Error ? err.message : "Scan failed.";
         console.error("[scan] failed", { id, message });
-        emit({ type: "error", message: friendlyError(message) });
+        emit({ type: "error", message: err instanceof ScanInputError ? err.message : friendlyError(message) });
       } finally {
         try {
           controller.close();

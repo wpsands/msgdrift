@@ -4,6 +4,7 @@ import { SeverityMark, severityMeta } from "@/components/severity-badge";
 import { CATEGORIES, LIMITS, SEVERITIES, type Category } from "@/lib/engine/schema";
 import { SYSTEM_PROMPT } from "@/lib/engine/prompts";
 import { DEFAULT_MODEL } from "@/lib/engine/analyze";
+import { SEVERITY_PENALTY } from "@/lib/engine/scoring";
 
 export const metadata: Metadata = {
   title: "Method",
@@ -38,7 +39,10 @@ export default function MethodPage() {
 
       <Section label="01" title="What the crawler reads">
         <p>
-          One plain HTTP fetch per page, with a user agent that names this tool. No scripts run and nothing is clicked. Navigation,
+          One plain HTTP fetch per page, with a user agent that names this tool. Redirects are followed one hop at a time, at most
+          five, and every hop is checked before it is requested. If the page comes back with fewer than {LIMITS.minPageChars}{" "}
+          characters, or blocked with a 401, 403, 429, or 503, it is fetched again through Firecrawl, which runs a browser, and
+          whichever version has more text is kept. Nothing is clicked. Navigation,
           footers, cookie notices, menus, and forms are stripped by matching whole class and id tokens, so a class like
           <span className="font-mono"> text-navy-800</span> is not mistaken for navigation. The main content region is preferred when
           the page marks one.
@@ -51,6 +55,14 @@ export default function MethodPage() {
         <p>
           The positioning document is the text you paste, up to {LIMITS.maxSourceChars.toLocaleString()} characters. It is sent to
           the model once per page and is not stored. The report keeps only the sentences a finding quotes.
+        </p>
+        <p>
+          Without a document, msgdrift runs a consistency check. The homepage becomes the reference, since it is usually the most
+          deliberate statement a company makes, and every other page is compared with it. The model reports only conflicts:
+          contradictions, the same claim with different facts (a customer count, a product name, a price), a different target
+          buyer, or framing that undercuts the homepage. It does not report what a page leaves out, because an About or pricing
+          page covers narrower ground by design. A finding with no homepage quote is dropped. The homepage itself is not scored.
+          This measures whether the site agrees with itself. It cannot tell you whether the homepage says the right thing.
         </p>
       </Section>
 
@@ -87,8 +99,11 @@ export default function MethodPage() {
 
       <Section label="05" title="How the overall score is calculated">
         <p>
-          Each page gets a 0 to 100 alignment score from the model, where 0 is completely off-message and 100 is fully aligned. The
-          overall score is the importance-weighted mean of the pages that were read: high 3x, medium 2x, low 1x. A page that could
+          Each page starts at 100 and loses points for every finding: {SEVERITY_PENALTY.critical} for a critical,{" "}
+          {SEVERITY_PENALTY.major} for a major, {SEVERITY_PENALTY.minor} for a minor, and {SEVERITY_PENALTY.info} for an info,
+          down to 0. The model judges the findings and their severity. It does not choose the number, so two pages with the
+          same findings always get the same score. Reports made before November 27, 2026, including the two examples, used a
+          score the model chose for each page. The overall score is the importance-weighted mean of the pages that were read: high 3x, medium 2x, low 1x. A page that could
           not be read is left out rather than counted as zero, since unknown is not the same as off-message.
         </p>
         <p>
@@ -99,10 +114,10 @@ export default function MethodPage() {
 
       <Section label="06" title="Checks on the model's output">
         <ul className="list-disc space-y-3 pl-5">
-          <li>The model&apos;s answer must match a fixed schema: findings with severity, category, both quotes, and an explanation; a summary; a score. Anything else is rejected.</li>
+          <li>The model&apos;s answer must match a fixed schema: findings with severity, category, both quotes, and an explanation, plus a summary. Anything else is rejected.</li>
           <li>If the answer is cut off by the output limit, the page is analyzed again with more room. If it is cut off twice, the page is marked not read.</li>
-          <li>Categories outside the eight are mapped to the nearest one. Scores outside 0 to 100 are clamped.</li>
-          <li>Every page URL is normalized and checked against private and internal address ranges before it is fetched, and again after redirects.</li>
+          <li>Categories outside the eight are mapped to the nearest one.</li>
+          <li>Every page URL is normalized and checked against private and internal address ranges before it is fetched, and again before each redirect is followed.</li>
         </ul>
       </Section>
 
@@ -110,7 +125,8 @@ export default function MethodPage() {
         <ul className="list-disc space-y-3 pl-5">
           <li>
             <strong className="font-medium text-ink">Pages that render in JavaScript.</strong> Many marketing sites ship an empty shell and
-            draw the copy client-side. Those pages come back as not read. Pricing pages are the most common case.
+            draw the copy client-side. The browser fallback reads most of them. Pages that need a click, a login, or a region
+            choice before the copy appears still come back as not read. Pricing pages are the most common case.
           </li>
           <li>
             <strong className="font-medium text-ink">Intentional segment pages.</strong> A page written for a second audience on purpose
@@ -120,7 +136,9 @@ export default function MethodPage() {
           <li>
             <strong className="font-medium text-ink">Run to run variance.</strong> The model is sampled at low temperature, not zero. In
             two runs on the same six HubSpot pages on the same day, individual page scores moved by as much as 12 points while the
-            findings stayed substantially the same. Compare the findings between runs rather than the scores.
+            findings stayed substantially the same. Scoring from findings removes the part of that spread that came from the model
+            picking a number. A run that finds one more or one fewer major finding still moves a page by 8 points, so compare the
+            findings between runs, not only the scores.
           </li>
           <li>
             <strong className="font-medium text-ink">Thin or boilerplate pages.</strong> A customers index or a short about page gives
