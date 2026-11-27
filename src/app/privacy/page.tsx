@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "What msgdrift does with the document you paste, the pages it reads, and the report it produces.",
 };
 
-const UPDATED = "November 8, 2026";
+const UPDATED = "November 27, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
         <p>
           PostHog runs in cookieless mode: no cookies, no local storage, no session recording, no click capture, no surveys.
           Visitors are counted with a daily rotating hash rather than a persistent identifier, and the browser&apos;s Do Not
-          Track setting is honored. The configuration is in{" "}
+          Track setting is honored. Visits from automated browsers are not counted. The configuration is in{" "}
           <a href="https://github.com/wpsands/msgdrift/blob/main/src/instrumentation-client.ts" className="link" target="_blank" rel="noopener noreferrer">instrumentation-client.ts</a>{" "}
           and the event list is in{" "}
           <a href="https://github.com/wpsands/msgdrift/blob/main/src/lib/analytics.ts" className="link" target="_blank" rel="noopener noreferrer">analytics.ts</a>.

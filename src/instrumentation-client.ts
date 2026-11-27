@@ -9,8 +9,25 @@ import posthog from "posthog-js";
  * The Vercel Marketplace install names the key NEXT_PUBLIC_POSTHOG_KEY; the
  * PostHog docs use NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN. Either works. Without a
  * key nothing initializes, so local development sends nothing.
+ *
+ * Same conventions as newlogogrowth.ai where they add no data collection:
+ * every event carries site: "msgdrift", automated browsers send nothing, and
+ * ?internal=1 marks a visit as internal traffic. Cookieless mode stores
+ * nothing in the browser, so the internal flag lasts for that page load
+ * (including in-app navigation) and has to be added again on a new visit.
  */
 const key = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+
+const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
+const automated = typeof navigator === "undefined" || navigator.webdriver || ua.includes("HeadlessChrome");
+
+function internalFlag(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).get("internal") === "1";
+  } catch {
+    return false;
+  }
+}
 
 const REPORT_ID = /\/r\/[a-z0-9]+/gi;
 
@@ -18,7 +35,8 @@ function scrub(value: unknown): unknown {
   return typeof value === "string" ? value.replace(REPORT_ID, "/r/[id]") : value;
 }
 
-if (key) {
+if (key && !automated) {
+  const internal = internalFlag();
   try {
     posthog.init(key, {
       api_host: "/ingest",
@@ -35,6 +53,8 @@ if (key) {
         for (const k of Object.keys(out)) {
           if (k.includes("url") || k.includes("pathname") || k.includes("referrer")) out[k] = scrub(out[k]);
         }
+        out.site = "msgdrift";
+        if (internal) out.internal_user = true;
         return out;
       },
     });
